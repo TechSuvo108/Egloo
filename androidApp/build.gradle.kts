@@ -14,6 +14,8 @@ kotlin {
 dependencies {
     implementation(projects.shared)
 
+    implementation(libs.decompose)
+    implementation(libs.decompose.android)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.koin.android)

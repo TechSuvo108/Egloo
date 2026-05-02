@@ -14,24 +14,19 @@ import com.trishit.egloo.domain.models.*
 import com.trishit.egloo.domain.viewmodels.*
 import com.trishit.egloo.ui.components.*
 import com.trishit.egloo.ui.theme.EglooColors
-import com.trishit.egloo.domain.viewmodels.HomeViewModel
-import com.trishit.egloo.ui.components.ActionItemRow
-import com.trishit.egloo.ui.components.KnowledgeCard
-import com.trishit.egloo.ui.components.PingoMessageBubble
-import com.trishit.egloo.ui.components.SectionHeader
 import org.koin.compose.koinInject
 
 @Composable
 fun HomeScreen(
-    viewModel: com.trishit.egloo.domain.viewmodels.HomeViewModel = koinInject(),
+    viewModel: HomeViewModel = koinInject(),
     onItemClick: (KnowledgeItem) -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsState()
 
     when {
-        state.isLoading -> _root_ide_package_.com.trishit.egloo.ui.screens.LoadingState()
-        state.error != null -> _root_ide_package_.com.trishit.egloo.ui.screens.ErrorState(state.error!!) { viewModel.loadDigest() }
-        state.digest != null -> _root_ide_package_.com.trishit.egloo.ui.screens.HomeContent(
+        state.isLoading -> LoadingState()
+        state.error != null -> ErrorState(state.error!!) { viewModel.loadDigest() }
+        state.digest != null -> HomeContent(
             digest = state.digest!!,
             onItemClick = onItemClick,
         )
@@ -44,7 +39,7 @@ private fun HomeContent(
     onItemClick: (KnowledgeItem) -> Unit,
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
 
@@ -66,7 +61,7 @@ private fun HomeContent(
 
         // ── Pingo message bubble ───────────────────────────────────────────────
         item {
-            _root_ide_package_.com.trishit.egloo.ui.components.PingoMessageBubble(digest.pingoMessage)
+            PingoMessageBubble(digest.pingoMessage)
         }
 
         // ── Stats row ─────────────────────────────────────────────────────────
@@ -75,16 +70,17 @@ private fun HomeContent(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                _root_ide_package_.com.trishit.egloo.ui.screens.StatChip(
+                StatChip(
                     "${digest.totalItemCount} items read",
                     modifier = Modifier.weight(1f)
                 )
-                _root_ide_package_.com.trishit.egloo.ui.screens.StatChip(
+                StatChip(
                     "${digest.sections.size} topics",
                     modifier = Modifier.weight(1f)
                 )
-                _root_ide_package_.com.trishit.egloo.ui.screens.StatChip(
-                    "${digest.sections.firstOrNull()?.actionItems?.size ?: 0} actions",
+                val totalActions = digest.sections.sumOf { it.actionItems.size }
+                StatChip(
+                    "$totalActions actions",
                     highlight = true,
                     modifier = Modifier.weight(1f),
                 )
@@ -94,7 +90,7 @@ private fun HomeContent(
         // ── Digest sections ───────────────────────────────────────────────────
         digest.sections.forEach { section ->
             item {
-                _root_ide_package_.com.trishit.egloo.ui.components.SectionHeader(
+                SectionHeader(
                     title = section.title,
                     subtitle = section.subtitle,
                 )
@@ -105,14 +101,14 @@ private fun HomeContent(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         section.actionItems.forEach { action ->
-                            _root_ide_package_.com.trishit.egloo.ui.components.ActionItemRow(action)
+                            ActionItemRow(action)
                         }
                     }
                 }
             }
 
             items(section.items) { item ->
-                _root_ide_package_.com.trishit.egloo.ui.components.KnowledgeCard(
+                KnowledgeCard(
                     item = item,
                     onClick = { onItemClick(item) })
             }
@@ -128,7 +124,7 @@ private fun StatChip(label: String, highlight: Boolean = false, modifier: Modifi
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (highlight) _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.BeakAmber.copy(alpha = 0.15f)
+                if (highlight) EglooColors.BeakAmber.copy(alpha = 0.15f)
                 else MaterialTheme.colorScheme.surfaceVariant
             )
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -137,7 +133,7 @@ private fun StatChip(label: String, highlight: Boolean = false, modifier: Modifi
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (highlight) _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.BeakAmber else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (highlight) EglooColors.BeakAmber else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

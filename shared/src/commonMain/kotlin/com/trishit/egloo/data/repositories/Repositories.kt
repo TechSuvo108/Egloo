@@ -1,9 +1,6 @@
 package com.trishit.egloo.data.repositories
 
-import com.egloo.domain.models.*
-import com.trishit.egloo.domain.models.ChatMessage
-import com.trishit.egloo.domain.models.SourceType
-import com.trishit.egloo.domain.models.Topic
+import com.trishit.egloo.domain.models.*
 import kotlinx.coroutines.flow.Flow
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,12 +14,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface DigestRepository {
     /** Emits the digest for today. Will emit a loading state then data. */
-    fun getDailyDigest(): Flow<com.trishit.egloo.data.repositories.DigestResult>
+    fun getDailyDigest(): Flow<DigestResult>
 }
 
 interface ChatRepository {
     /** Returns existing chat history as a flow. */
-    fun getChatHistory(): Flow<List<com.trishit.egloo.domain.models.ChatMessage>>
+    fun getChatHistory(): Flow<List<ChatMessage>>
     /** Sends a user message. Pingo's reply will be emitted into getChatHistory(). */
     suspend fun sendMessage(text: String)
     /** Clears the conversation. */
@@ -30,14 +27,14 @@ interface ChatRepository {
 }
 
 interface TopicsRepository {
-    fun getTopics(): Flow<List<com.trishit.egloo.domain.models.Topic>>
-    fun getTopicById(id: String): Flow<com.trishit.egloo.domain.models.Topic?>
+    fun getTopics(): Flow<List<Topic>>
+    fun getTopicById(id: String): Flow<Topic?>
 }
 
 interface SourcesRepository {
     fun getConnectedSources(): Flow<List<ConnectedSource>>
     /** Triggers mock OAuth flow. Real implementation opens a browser/WebView. */
-    suspend fun connectSource(type: com.trishit.egloo.domain.models.SourceType)
+    suspend fun connectSource(type: SourceType)
     suspend fun disconnectSource(id: String)
 }
 
@@ -49,7 +46,7 @@ interface SettingsRepository {
 // ── Result wrappers ───────────────────────────────────────────────────────────
 
 sealed class DigestResult {
-    data object Loading : com.trishit.egloo.data.repositories.DigestResult()
-    data class Success(val digest: DailyDigest) : com.trishit.egloo.data.repositories.DigestResult()
-    data class Error(val message: String) : com.trishit.egloo.data.repositories.DigestResult()
+    data object Loading : DigestResult()
+    data class Success(val digest: DailyDigest) : DigestResult()
+    data class Error(val message: String) : DigestResult()
 }

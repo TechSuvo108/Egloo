@@ -4,67 +4,111 @@ import kotlinx.serialization.Serializable
 
 // ─────────────────────────────────────────────
 //  Core domain models
-//  These are the canonical data shapes used
-//  across all screens. The API layer will map
-//  DTOs → these models (see API guidelines).
 // ─────────────────────────────────────────────
 
-enum class SourceType { GMAIL, SLACK, DRIVE, NOTION, PDF, GOOGLE_DRIVE, MANUAL }
+enum class SourceType(val displayName: String) {
+    GMAIL("Gmail"),
+    SLACK("Slack"),
+    DRIVE("Google Drive"),
+    NOTION("Notion"),
+    PDF("PDF Document"),
+    GOOGLE_DRIVE("Google Drive"),
+    MANUAL("Manual Entry")
+}
 
 @Serializable
-data class Source(
+data class ConnectedSource(
     val id: String,
     val type: SourceType,
-    val displayName: String,
+    val accountName: String,
     val isConnected: Boolean,
-    val lastSyncedAt: String? = null,   // ISO-8601; null = never synced
+    val lastSyncedAt: String? = null,
     val itemCount: Int = 0
 )
 
 @Serializable
-data class DigestItem(
+data class DailyDigest(
+    val dateLabel: String,
+    val greeting: String,
+    val pingoMessage: String,
+    val totalItemCount: Int,
+    val sections: List<DigestSection>
+)
+
+@Serializable
+data class DigestSection(
+    val title: String,
+    val subtitle: String,
+    val items: List<KnowledgeItem>,
+    val actionItems: List<ActionItem> = emptyList()
+)
+
+@Serializable
+data class KnowledgeItem(
     val id: String,
     val title: String,
     val summary: String,
-    val sourceType: com.trishit.egloo.domain.models.SourceType,
-    val sourceName: String,          // e.g. "Project Alpha · Slack"
-    val timestamp: String,           // human-readable, e.g. "2h ago"
-    val isActionItem: Boolean = false,
+    val sourceType: SourceType,
+    val sourceName: String,
+    val timestamp: String,
     val tags: List<String> = emptyList()
 )
 
 @Serializable
+data class ActionItem(
+    val id: String,
+    val text: String,
+    val sourceType: SourceType,
+    val isCompleted: Boolean = false
+)
+
+enum class TopicColor { TEAL, BLUE, AMBER, CORAL, PURPLE }
+
+@Serializable
 data class Topic(
     val id: String,
-    val name: String,
+    val title: String,
     val summary: String,
     val itemCount: Int,
-    val sources: List<com.trishit.egloo.domain.models.SourceType>,
-    val lastActivityAt: String
+    val sources: List<SourceType>,
+    val lastUpdatedAt: String,
+    val color: TopicColor = TopicColor.TEAL
 )
 
 @Serializable
-data class ChatMessage(
-    val id: String,
-    val role: Role,
-    val content: String,
-    val sourceRefs: List<com.trishit.egloo.domain.models.SourceRef> = emptyList(),  // citations shown below AI messages
-    val timestamp: String = ""
-) {
-    enum class Role { USER, PINGO }
+sealed class ChatMessage {
+    abstract val id: String
+    abstract val text: String
+    abstract val sentAt: kotlinx.datetime.Instant
+
+    @Serializable
+    data class User(
+        override val id: String,
+        override val text: String,
+        override val sentAt: kotlinx.datetime.Instant
+    ) : ChatMessage()
+
+    @Serializable
+    data class Pingo(
+        override val id: String,
+        override val text: String,
+        override val sentAt: kotlinx.datetime.Instant,
+        val sources: List<ChatSource> = emptyList(),
+        val isStreaming: Boolean = false
+    ) : ChatMessage()
 }
 
 @Serializable
-data class SourceRef(
-    val label: String,               // e.g. "Slack · #dev-general"
-    val sourceType: com.trishit.egloo.domain.models.SourceType
+data class ChatSource(
+    val label: String,
+    val type: SourceType
 )
 
 @Serializable
-data class SavedItem(
-    val id: String,
-    val title: String,
-    val excerpt: String,
-    val sourceType: com.trishit.egloo.domain.models.SourceType,
-    val savedAt: String
+data class AppSettings(
+    val userName: String = "User",
+    val darkTheme: Boolean = true,
+    val pingoGreetingsEnabled: Boolean = true,
+    val digestNotificationsEnabled: Boolean = true,
+    val syncFrequencyHours: Int = 4
 )

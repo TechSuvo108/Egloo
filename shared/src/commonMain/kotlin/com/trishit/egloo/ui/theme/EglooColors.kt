@@ -1,7 +1,6 @@
 package com.trishit.egloo.ui.theme
 
 import androidx.compose.ui.graphics.Color
-import com.egloo.ui.theme.EglooColors
 
 // ── Egloo brand palette ──────────────────────────────────────────────────────
 
@@ -42,7 +41,7 @@ object EglooColors {
 
     // Semantic
     val Success         = TealPrimary
-    val Warning         = _root_ide_package_.com.egloo.ui.theme.EglooColors.BeakAmber
+    val Warning         = BeakAmber
     val Error           = Color(0xFFE24B4A)
     val Info            = BlueAccent
 

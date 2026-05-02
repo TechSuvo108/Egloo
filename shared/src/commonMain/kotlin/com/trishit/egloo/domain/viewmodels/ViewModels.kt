@@ -2,15 +2,6 @@ package com.trishit.egloo.domain.viewmodels
 
 import com.trishit.egloo.data.repositories.*
 import com.trishit.egloo.domain.models.*
-import com.trishit.egloo.data.repositories.ChatRepository
-import com.trishit.egloo.data.repositories.DigestRepository
-import com.trishit.egloo.data.repositories.DigestResult
-import com.trishit.egloo.data.repositories.SettingsRepository
-import com.trishit.egloo.data.repositories.SourcesRepository
-import com.trishit.egloo.data.repositories.TopicsRepository
-import com.trishit.egloo.domain.models.ChatMessage
-import com.trishit.egloo.domain.models.SourceType
-import com.trishit.egloo.domain.models.Topic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -29,28 +20,20 @@ data class HomeUiState(
     val error: String? = null,
 )
 
-class HomeViewModel(private val digestRepo: com.trishit.egloo.data.repositories.DigestRepository) : com.trishit.egloo.domain.viewmodels.BaseViewModel() {
+class HomeViewModel(private val digestRepo: DigestRepository) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(_root_ide_package_.com.trishit.egloo.domain.viewmodels.HomeUiState())
-    val uiState: StateFlow<com.trishit.egloo.domain.viewmodels.HomeUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init { loadDigest() }
 
     fun loadDigest() {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             digestRepo.getDailyDigest().collect { result ->
                 _uiState.value = when (result) {
-                    is com.trishit.egloo.data.repositories.DigestResult.Loading -> _root_ide_package_.com.trishit.egloo.domain.viewmodels.HomeUiState(
-                        isLoading = true
-                    )
-                    is com.trishit.egloo.data.repositories.DigestResult.Success -> _root_ide_package_.com.trishit.egloo.domain.viewmodels.HomeUiState(
-                        isLoading = false,
-                        digest = result.digest
-                    )
-                    is com.trishit.egloo.data.repositories.DigestResult.Error   -> _root_ide_package_.com.trishit.egloo.domain.viewmodels.HomeUiState(
-                        isLoading = false,
-                        error = result.message
-                    )
+                    is DigestResult.Loading -> HomeUiState(isLoading = true)
+                    is DigestResult.Success -> HomeUiState(isLoading = false, digest = result.digest)
+                    is DigestResult.Error   -> HomeUiState(isLoading = false, error = result.message)
                 }
             }
         }
@@ -60,18 +43,19 @@ class HomeViewModel(private val digestRepo: com.trishit.egloo.data.repositories.
 // ── Chat ──────────────────────────────────────────────────────────────────────
 
 data class ChatUiState(
-    val messages: List<com.trishit.egloo.domain.models.ChatMessage> = emptyList(),
+    val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",
     val isSending: Boolean = false,
+    val isTyping: Boolean = false,
 )
 
-class ChatViewModel(private val chatRepo: com.trishit.egloo.data.repositories.ChatRepository) : com.trishit.egloo.domain.viewmodels.BaseViewModel() {
+class ChatViewModel(private val chatRepo: ChatRepository) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(_root_ide_package_.com.trishit.egloo.domain.viewmodels.ChatUiState())
-    val uiState: StateFlow<com.trishit.egloo.domain.viewmodels.ChatUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ChatUiState())
+    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     init {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             chatRepo.getChatHistory().collect { messages ->
                 _uiState.update { it.copy(messages = messages) }
             }
@@ -82,18 +66,18 @@ class ChatViewModel(private val chatRepo: com.trishit.egloo.data.repositories.Ch
         _uiState.update { it.copy(inputText = text) }
     }
 
-    fun sendMessage() {
-        val text = _uiState.value.inputText.trim()
-        if (text.isBlank()) return
-        _uiState.update { it.copy(inputText = "", isSending = true) }
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
-            chatRepo.sendMessage(text)
+    fun sendMessage(text: String) {
+        val trimmedText = text.trim()
+        if (trimmedText.isBlank()) return
+        _uiState.update { it.copy(isSending = true) }
+        scope.launch {
+            chatRepo.sendMessage(trimmedText)
             _uiState.update { it.copy(isSending = false) }
         }
     }
 
     fun clearChat() {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch { chatRepo.clearHistory() }
+        scope.launch { chatRepo.clearHistory() }
     }
 }
 
@@ -101,24 +85,24 @@ class ChatViewModel(private val chatRepo: com.trishit.egloo.data.repositories.Ch
 
 data class TopicsUiState(
     val isLoading: Boolean = true,
-    val topics: List<com.trishit.egloo.domain.models.Topic> = emptyList(),
-    val selectedTopic: com.trishit.egloo.domain.models.Topic? = null,
+    val topics: List<Topic> = emptyList(),
+    val selectedTopic: Topic? = null,
 )
 
-class TopicsViewModel(private val topicsRepo: com.trishit.egloo.data.repositories.TopicsRepository) : com.trishit.egloo.domain.viewmodels.BaseViewModel() {
+class TopicsViewModel(private val topicsRepo: TopicsRepository) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(_root_ide_package_.com.trishit.egloo.domain.viewmodels.TopicsUiState())
-    val uiState: StateFlow<com.trishit.egloo.domain.viewmodels.TopicsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(TopicsUiState())
+    val uiState: StateFlow<TopicsUiState> = _uiState.asStateFlow()
 
     init {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             topicsRepo.getTopics().collect { topics ->
                 _uiState.update { it.copy(isLoading = false, topics = topics) }
             }
         }
     }
 
-    fun selectTopic(topic: com.trishit.egloo.domain.models.Topic?) {
+    fun selectTopic(topic: Topic?) {
         _uiState.update { it.copy(selectedTopic = topic) }
     }
 }
@@ -127,32 +111,32 @@ class TopicsViewModel(private val topicsRepo: com.trishit.egloo.data.repositorie
 
 data class SourcesUiState(
     val sources: List<ConnectedSource> = emptyList(),
-    val connectingType: com.trishit.egloo.domain.models.SourceType? = null,
+    val connectingType: SourceType? = null,
 )
 
-class SourcesViewModel(private val sourcesRepo: com.trishit.egloo.data.repositories.SourcesRepository) : com.trishit.egloo.domain.viewmodels.BaseViewModel() {
+class SourcesViewModel(private val sourcesRepo: SourcesRepository) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(_root_ide_package_.com.trishit.egloo.domain.viewmodels.SourcesUiState())
-    val uiState: StateFlow<com.trishit.egloo.domain.viewmodels.SourcesUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SourcesUiState())
+    val uiState: StateFlow<SourcesUiState> = _uiState.asStateFlow()
 
     init {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             sourcesRepo.getConnectedSources().collect { sources ->
                 _uiState.update { it.copy(sources = sources) }
             }
         }
     }
 
-    fun connectSource(type: com.trishit.egloo.domain.models.SourceType) {
+    fun connectSource(type: SourceType) {
         _uiState.update { it.copy(connectingType = type) }
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             sourcesRepo.connectSource(type)
             _uiState.update { it.copy(connectingType = null) }
         }
     }
 
     fun disconnectSource(id: String) {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch { sourcesRepo.disconnectSource(id) }
+        scope.launch { sourcesRepo.disconnectSource(id) }
     }
 }
 
@@ -163,13 +147,13 @@ data class SettingsUiState(
     val isSaved: Boolean = false,
 )
 
-class SettingsViewModel(private val settingsRepo: com.trishit.egloo.data.repositories.SettingsRepository) : com.trishit.egloo.domain.viewmodels.BaseViewModel() {
+class SettingsViewModel(private val settingsRepo: SettingsRepository) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(_root_ide_package_.com.trishit.egloo.domain.viewmodels.SettingsUiState())
-    val uiState: StateFlow<com.trishit.egloo.domain.viewmodels.SettingsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             settingsRepo.getSettings().collect { settings ->
                 _uiState.update { it.copy(settings = settings) }
             }
@@ -183,7 +167,7 @@ class SettingsViewModel(private val settingsRepo: com.trishit.egloo.data.reposit
     fun setSyncFrequency(hours: Int) = update { it.copy(syncFrequencyHours = hours) }
 
     private fun update(block: (AppSettings) -> AppSettings) {
-        _root_ide_package_.com.trishit.egloo.domain.viewmodels.BaseViewModel.scope.launch {
+        scope.launch {
             val updated = block(_uiState.value.settings)
             settingsRepo.updateSettings(updated)
             _uiState.update { it.copy(isSaved = true) }

@@ -4,7 +4,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.trishit.egloo.di.eglooModule
+import com.trishit.egloo.navigation.DefaultRootComponent
+import com.trishit.egloo.navigation.RootContent
 import org.koin.core.context.startKoin
+import web.storage.localStorage
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -12,7 +16,7 @@ fun main() {
     val lifecycle = LifecycleRegistry()
     val root = DefaultRootComponent(
         componentContext = DefaultComponentContext(lifecycle),
-        isFirstLaunch    = wasmIsFirstLaunch(),
+        isFirstLaunch = wasmIsFirstLaunch(),
     )
     ComposeViewport {
         RootContent(component = root, darkTheme = true)

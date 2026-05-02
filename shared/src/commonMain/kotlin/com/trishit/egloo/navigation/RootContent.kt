@@ -14,14 +14,7 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.*
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.trishit.egloo.ui.screens.*
-import com.egloo.ui.theme.EglooTheme
-import com.trishit.egloo.navigation.toDestination
-import com.trishit.egloo.ui.screens.ChatScreen
-import com.trishit.egloo.ui.screens.HomeScreen
-import com.trishit.egloo.ui.screens.OnboardingScreen
-import com.trishit.egloo.ui.screens.SettingsScreen
-import com.trishit.egloo.ui.screens.SourcesScreen
-import com.trishit.egloo.ui.screens.TopicsScreen
+import com.trishit.egloo.ui.theme.EglooTheme
 
 // ── Bottom nav items ──────────────────────────────────────────────────────────
 
@@ -29,58 +22,58 @@ private data class NavItem(
     val label: String,
     val icon: ImageVector,
     val selectedIcon: ImageVector,
-    val destination: com.trishit.egloo.navigation.Destination,
+    val destination: Destination,
 )
 
 private val navItems = listOf(
-    _root_ide_package_.com.trishit.egloo.navigation.NavItem(
+    NavItem(
         "Home",
         Icons.Default.Home,
         Icons.Default.Home,
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Home
+        Destination.Home
     ),
-    _root_ide_package_.com.trishit.egloo.navigation.NavItem(
+    NavItem(
         "Chat",
         Icons.Default.Search,
         Icons.Default.Search,
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Chat
+        Destination.Chat
     ),
-    _root_ide_package_.com.trishit.egloo.navigation.NavItem(
+    NavItem(
         "Topics",
         Icons.Default.List,
         Icons.Default.List,
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Topics
+        Destination.Topics
     ),
-    _root_ide_package_.com.trishit.egloo.navigation.NavItem(
+    NavItem(
         "Sources",
         Icons.Default.AccountBox,
         Icons.Default.AccountBox,
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Sources
+        Destination.Sources
     ),
-    _root_ide_package_.com.trishit.egloo.navigation.NavItem(
+    NavItem(
         "Settings",
         Icons.Default.Settings,
         Icons.Default.Settings,
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Settings
+        Destination.Settings
     ),
 )
 
 // ── Root content — shared across Android, iOS, Desktop ───────────────────────
 
 @Composable
-fun RootContent(component: com.trishit.egloo.navigation.RootComponent, darkTheme: Boolean = true) {
-    _root_ide_package_.com.egloo.ui.theme.EglooTheme(darkTheme = darkTheme) {
+fun RootContent(component: RootComponent, darkTheme: Boolean = true) {
+    EglooTheme(darkTheme = darkTheme) {
         val stack by component.stack.subscribeAsState()
         val activeChild = stack.active.instance
 
         // Show onboarding without chrome
-        if (activeChild is com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild) {
+        if (activeChild is RootComponent.Child.OnboardingChild) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background,
             ) {
-                _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingScreen(
-                    onComplete = { component.navigateTo(_root_ide_package_.com.trishit.egloo.navigation.Destination.Home) }
+                OnboardingScreen(
+                    onComplete = { component.navigateTo(Destination.Home) }
                 )
             }
             return@EglooTheme
@@ -89,9 +82,9 @@ fun RootContent(component: com.trishit.egloo.navigation.RootComponent, darkTheme
         // Main app shell
         Scaffold(
             bottomBar = {
-                _root_ide_package_.com.trishit.egloo.navigation.EglooBottomBar(
+                EglooBottomBar(
                     activeDestination = activeChild.toDestination(),
-                    onNavigate = com.trishit.egloo.navigation.RootComponent::navigateTo,
+                    onNavigate = component::navigateTo,
                 )
             },
             containerColor = MaterialTheme.colorScheme.background,
@@ -102,12 +95,12 @@ fun RootContent(component: com.trishit.egloo.navigation.RootComponent, darkTheme
                     animation = stackAnimation(fade() + scale()),
                 ) { child ->
                     when (val instance = child.instance) {
-                        is com.trishit.egloo.navigation.RootComponent.Child.HomeChild -> _root_ide_package_.com.trishit.egloo.ui.screens.HomeScreen()
-                        is com.trishit.egloo.navigation.RootComponent.Child.ChatChild -> _root_ide_package_.com.trishit.egloo.ui.screens.ChatScreen()
-                        is com.trishit.egloo.navigation.RootComponent.Child.TopicsChild -> _root_ide_package_.com.trishit.egloo.ui.screens.TopicsScreen()
-                        is com.trishit.egloo.navigation.RootComponent.Child.SourcesChild -> _root_ide_package_.com.trishit.egloo.ui.screens.SourcesScreen()
-                        is com.trishit.egloo.navigation.RootComponent.Child.SettingsChild -> _root_ide_package_.com.trishit.egloo.ui.screens.SettingsScreen()
-                        is com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild -> {} // handled above
+                        is RootComponent.Child.HomeChild -> HomeScreen()
+                        is RootComponent.Child.ChatChild -> ChatScreen()
+                        is RootComponent.Child.TopicsChild -> TopicsScreen()
+                        is RootComponent.Child.SourcesChild -> SourcesScreen()
+                        is RootComponent.Child.SettingsChild -> SettingsScreen()
+                        is RootComponent.Child.OnboardingChild -> {} // handled above
                     }
                 }
             }
@@ -119,14 +112,14 @@ fun RootContent(component: com.trishit.egloo.navigation.RootComponent, darkTheme
 
 @Composable
 private fun EglooBottomBar(
-    activeDestination: com.trishit.egloo.navigation.Destination?,
-    onNavigate: (com.trishit.egloo.navigation.Destination) -> Unit,
+    activeDestination: Destination?,
+    onNavigate: (Destination) -> Unit,
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
     ) {
-        _root_ide_package_.com.trishit.egloo.navigation.navItems.forEach { item ->
+        navItems.forEach { item ->
             val isSelected = activeDestination == item.destination
             NavigationBarItem(
                 selected = isSelected,
@@ -154,8 +147,8 @@ private fun EglooBottomBar(
 
 @Composable
 fun EglooNavRail(
-    activeDestination: com.trishit.egloo.navigation.Destination?,
-    onNavigate: (com.trishit.egloo.navigation.Destination) -> Unit,
+    activeDestination: Destination?,
+    onNavigate: (Destination) -> Unit,
 ) {
     NavigationRail(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -171,7 +164,7 @@ fun EglooNavRail(
         }
     ) {
         Spacer(Modifier.weight(1f))
-        _root_ide_package_.com.trishit.egloo.navigation.navItems.forEach { item ->
+        navItems.forEach { item ->
             val isSelected = activeDestination == item.destination
             NavigationRailItem(
                 selected = isSelected,
@@ -193,19 +186,17 @@ fun EglooNavRail(
 
 @Composable
 fun DesktopRootContent(
-    component: com.trishit.egloo.navigation.RootComponent,
+    component: RootComponent,
     darkTheme: Boolean = true
 ) {
-    _root_ide_package_.com.egloo.ui.theme.EglooTheme(darkTheme = darkTheme) {
+    EglooTheme(darkTheme = darkTheme) {
         val stack by component.stack.subscribeAsState()
         val activeChild = stack.active.instance
 
-        if (activeChild is com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild) {
+        if (activeChild is RootComponent.Child.OnboardingChild) {
             Surface(Modifier.fillMaxSize(), color = Color.Transparent) {
-                _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingScreen(onComplete = {
-                    component.navigateTo(
-                        _root_ide_package_.com.trishit.egloo.navigation.Destination.Home
-                    )
+                OnboardingScreen(onComplete = {
+                    component.navigateTo(Destination.Home)
                 })
             }
             return@EglooTheme
@@ -219,9 +210,9 @@ fun DesktopRootContent(
             color = Color.Transparent,
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                _root_ide_package_.com.trishit.egloo.navigation.EglooNavRail(
+                EglooNavRail(
                     activeDestination = activeChild.toDestination(),
-                    onNavigate = com.trishit.egloo.navigation.RootComponent::navigateTo,
+                    onNavigate = component::navigateTo,
                 )
 
                 VerticalDivider(
@@ -235,12 +226,12 @@ fun DesktopRootContent(
                         animation = stackAnimation(fade()),
                     ) { child ->
                         when (child.instance) {
-                            is com.trishit.egloo.navigation.RootComponent.Child.HomeChild -> _root_ide_package_.com.trishit.egloo.ui.screens.HomeScreen()
-                            is com.trishit.egloo.navigation.RootComponent.Child.ChatChild -> _root_ide_package_.com.trishit.egloo.ui.screens.ChatScreen()
-                            is com.trishit.egloo.navigation.RootComponent.Child.TopicsChild -> _root_ide_package_.com.trishit.egloo.ui.screens.TopicsScreen()
-                            is com.trishit.egloo.navigation.RootComponent.Child.SourcesChild -> _root_ide_package_.com.trishit.egloo.ui.screens.SourcesScreen()
-                            is com.trishit.egloo.navigation.RootComponent.Child.SettingsChild -> _root_ide_package_.com.trishit.egloo.ui.screens.SettingsScreen()
-                            is com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild -> {}
+                            is RootComponent.Child.HomeChild -> HomeScreen()
+                            is RootComponent.Child.ChatChild -> ChatScreen()
+                            is RootComponent.Child.TopicsChild -> TopicsScreen()
+                            is RootComponent.Child.SourcesChild -> SourcesScreen()
+                            is RootComponent.Child.SettingsChild -> SettingsScreen()
+                            is RootComponent.Child.OnboardingChild -> {}
                         }
                     }
                 }
@@ -251,12 +242,12 @@ fun DesktopRootContent(
 
 // ── Helper extension ──────────────────────────────────────────────────────────
 
-private fun com.trishit.egloo.navigation.RootComponent.Child.toDestination(): com.trishit.egloo.navigation.Destination? =
+private fun RootComponent.Child.toDestination(): Destination? =
     when (this) {
-        is com.trishit.egloo.navigation.RootComponent.Child.HomeChild -> _root_ide_package_.com.trishit.egloo.navigation.Destination.Home
-        is com.trishit.egloo.navigation.RootComponent.Child.ChatChild -> _root_ide_package_.com.trishit.egloo.navigation.Destination.Chat
-        is com.trishit.egloo.navigation.RootComponent.Child.TopicsChild -> _root_ide_package_.com.trishit.egloo.navigation.Destination.Topics
-        is com.trishit.egloo.navigation.RootComponent.Child.SourcesChild -> _root_ide_package_.com.trishit.egloo.navigation.Destination.Sources
-        is com.trishit.egloo.navigation.RootComponent.Child.SettingsChild -> _root_ide_package_.com.trishit.egloo.navigation.Destination.Settings
-        is com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild -> null
+        is RootComponent.Child.HomeChild -> Destination.Home
+        is RootComponent.Child.ChatChild -> Destination.Chat
+        is RootComponent.Child.TopicsChild -> Destination.Topics
+        is RootComponent.Child.SourcesChild -> Destination.Sources
+        is RootComponent.Child.SettingsChild -> Destination.Settings
+        is RootComponent.Child.OnboardingChild -> null
     }

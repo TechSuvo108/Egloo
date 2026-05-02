@@ -1,4 +1,4 @@
-package com.egloo.ui.theme
+package com.trishit.egloo.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
@@ -7,65 +7,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.trishit.egloo.ui.theme.EglooColors
-import kotlin.invoke
-
-// ─────────────────────────────────────────────
-//  Egloo color palette — mirrors the brand spec
-// ─────────────────────────────────────────────
-
-object EglooColors {
-    // Primary
-    val IgNight       = Color(0xFF0E1A2E)
-    val IgNightLight  = Color(0xFF1A2D47)
-    val PingoTeal     = Color(0xFF1D9E75)
-    val PingoTealDark = Color(0xFF0F6E56)
-    val ArcticBlue    = Color(0xFF378ADD)
-    val ArcticBlueDark= Color(0xFF185FA5)
-    val SnowWhite     = Color(0xFFDAF0FA)
-    val SnowPure      = Color(0xFFF0F7FC)
-    val BeakAmber     = Color(0xFFF5A623)
-    val BeakAmberDark = Color(0xFFBA7517)
-
-    // Neutral
-    val Surface       = Color(0xFFFFFFFF)
-    val SurfaceVariant= Color(0xFFF5F8FA)
-    val OnSurface     = Color(0xFF0E1A2E)
-    val OnSurfaceMuted= Color(0xFF5F7080)
-
-    // Semantic
-    val ErrorRed      = Color(0xFFE24B4A)
-    val SuccessGreen  = Color(0xFF1D9E75)
-    val WarnAmber     = Color(0xFFF5A623)
-}
-
-private val DarkColorScheme = darkColorScheme(
-    primary          = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.PingoTeal,
-    onPrimary        = Color.White,
-    primaryContainer = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.PingoTealDark,
-    secondary        = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.ArcticBlue,
-    onSecondary      = Color.White,
-    background       = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.IgNight,
-    surface          = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.IgNightLight,
-    onBackground     = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.SnowWhite,
-    onSurface        = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.SnowWhite,
-    error            = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.ErrorRed,
-    tertiary         = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.BeakAmber,
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary          = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.PingoTeal,
-    onPrimary        = Color.White,
-    primaryContainer = Color(0xFFB7EDD9),
-    secondary        = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.ArcticBlueDark,
-    onSecondary      = Color.White,
-    background       = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.SnowPure,
-    surface          = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.Surface,
-    onBackground     = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.IgNight,
-    onSurface        = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.IgNight,
-    error            = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.ErrorRed,
-    tertiary         = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.BeakAmberDark,
-)
 
 // ─────────────────────────────────────────────
 //  Typography
@@ -84,6 +25,38 @@ val EglooTypography = Typography(
 )
 
 // ─────────────────────────────────────────────
+//  Theme colors
+// ─────────────────────────────────────────────
+
+private val DarkColorScheme = darkColorScheme(
+    primary          = EglooColors.TealPrimary,
+    onPrimary        = Color.White,
+    primaryContainer = EglooColors.TealDark,
+    secondary        = EglooColors.BlueAccent,
+    onSecondary      = Color.White,
+    background       = EglooColors.NightDeep,
+    surface          = EglooColors.NightMid,
+    onBackground     = EglooColors.SnowWhite,
+    onSurface        = EglooColors.SnowWhite,
+    error            = EglooColors.Error,
+    tertiary         = EglooColors.BeakAmber,
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary          = EglooColors.TealPrimary,
+    onPrimary        = Color.White,
+    primaryContainer = EglooColors.TealLighter,
+    secondary        = EglooColors.BlueDark,
+    onSecondary      = Color.White,
+    background       = EglooColors.SnowPure,
+    surface          = Color.White,
+    onBackground     = EglooColors.NightDeep,
+    onSurface        = EglooColors.NightDeep,
+    error            = EglooColors.Error,
+    tertiary         = EglooColors.BeakDark,
+)
+
+// ─────────────────────────────────────────────
 //  Theme composable
 // ─────────────────────────────────────────────
 
@@ -92,10 +65,10 @@ fun EglooTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) _root_ide_package_.com.egloo.ui.theme.DarkColorScheme else _root_ide_package_.com.egloo.ui.theme.LightColorScheme
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     MaterialTheme(
         colorScheme = colorScheme,
-        typography  = _root_ide_package_.com.egloo.ui.theme.EglooTypography,
+        typography  = EglooTypography,
         content     = content
     )
 }

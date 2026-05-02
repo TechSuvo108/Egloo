@@ -1,10 +1,8 @@
 package com.trishit.egloo.ui.components
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -14,8 +12,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.trishit.egloo.domain.models.*
 import com.trishit.egloo.ui.theme.EglooColors
-import com.trishit.egloo.domain.models.SourceType
-import com.trishit.egloo.ui.components.timeAgo
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -23,14 +19,14 @@ import kotlin.time.Instant
 // ── Source badge ──────────────────────────────────────────────────────────────
 
 @Composable
-fun SourceBadge(type: com.trishit.egloo.domain.models.SourceType, modifier: Modifier = Modifier) {
+fun SourceBadge(type: SourceType, modifier: Modifier = Modifier) {
     val (bg, fg, label) = when (type) {
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.GMAIL        -> Triple(Color(0x22EA4335), _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.GmailRed,    "Gmail")
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.SLACK        -> Triple(Color(0x22611f69), _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.SlackPurple, "Slack")
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.GOOGLE_DRIVE -> Triple(Color(0x221967D2), _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.DriveBlue,   "Drive")
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.NOTION       -> Triple(Color(0x2237352F), _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.NotionGray,  "Notion")
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.PDF          -> Triple(Color(0x22FF5722), _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.PdfOrange,   "PDF")
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.MANUAL       -> Triple(Color(0x22888888), Color(0xFF888888),       "Manual")
+        SourceType.GMAIL        -> Triple(Color(0x22EA4335), EglooColors.GmailRed,    "Gmail")
+        SourceType.SLACK        -> Triple(Color(0x22611f69), EglooColors.SlackPurple, "Slack")
+        SourceType.GOOGLE_DRIVE, SourceType.DRIVE -> Triple(Color(0x221967D2), EglooColors.DriveBlue,   "Drive")
+        SourceType.NOTION       -> Triple(Color(0x2237352F), EglooColors.NotionGray,  "Notion")
+        SourceType.PDF          -> Triple(Color(0x22FF5722), EglooColors.PdfOrange,   "PDF")
+        SourceType.MANUAL       -> Triple(Color(0x22888888), Color(0xFF888888),       "Manual")
     }
     Box(
         modifier = modifier
@@ -49,14 +45,14 @@ fun SourceBadge(type: com.trishit.egloo.domain.models.SourceType, modifier: Modi
 // ── Source dot (compact) ──────────────────────────────────────────────────────
 
 @Composable
-fun SourceDot(type: com.trishit.egloo.domain.models.SourceType, modifier: Modifier = Modifier) {
+fun SourceDot(type: SourceType, modifier: Modifier = Modifier) {
     val color = when (type) {
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.GMAIL        -> _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.GmailRed
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.SLACK        -> _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.SlackPurple
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.GOOGLE_DRIVE -> _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.DriveBlue
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.NOTION       -> _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.NotionGray
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.PDF          -> _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.PdfOrange
-        _root_ide_package_.com.trishit.egloo.domain.models.SourceType.MANUAL       -> Color(0xFF888888)
+        SourceType.GMAIL        -> EglooColors.GmailRed
+        SourceType.SLACK        -> EglooColors.SlackPurple
+        SourceType.GOOGLE_DRIVE, SourceType.DRIVE -> EglooColors.DriveBlue
+        SourceType.NOTION       -> EglooColors.NotionGray
+        SourceType.PDF          -> EglooColors.PdfOrange
+        SourceType.MANUAL       -> Color(0xFF888888)
     }
     Box(
         modifier = modifier
@@ -87,15 +83,15 @@ fun KnowledgeCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                _root_ide_package_.com.trishit.egloo.ui.components.SourceDot(item.sourceType)
+                SourceDot(item.sourceType)
                 Text(
-                    text = item.sourceLabel,
+                    text = item.sourceName,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = item.createdAt.timeAgo(),
+                    text = item.timestamp,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 )
@@ -124,9 +120,13 @@ fun KnowledgeCard(
             )
 
             // Project tag
-            if (item.projectTag != null) {
+            if (item.tags.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                _root_ide_package_.com.trishit.egloo.ui.components.ProjectTag(item.projectTag)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    item.tags.forEach { tag ->
+                        ProjectTag(tag)
+                    }
+                }
             }
         }
     }
@@ -158,13 +158,13 @@ fun PingoAvatar(size: Dp = 36.dp, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealDarker),
+            .background(EglooColors.TealDarker),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "P",
             style = MaterialTheme.typography.titleMedium,
-            color = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealLighter,
+            color = EglooColors.TealLighter,
         )
     }
 }
@@ -172,7 +172,7 @@ fun PingoAvatar(size: Dp = 36.dp, modifier: Modifier = Modifier) {
 // ── Action item row ────────────────────────────────────────────────────────────
 
 @Composable
-fun ActionItemRow(text: String, modifier: Modifier = Modifier) {
+fun ActionItemRow(action: ActionItem, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -186,10 +186,10 @@ fun ActionItemRow(text: String, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(6.dp)
                 .clip(CircleShape)
-                .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.BeakAmber)
+                .background(EglooColors.BeakAmber)
         )
         Text(
-            text = text,
+            text = action.text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -228,17 +228,17 @@ fun PingoMessageBubble(message: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealDarker.copy(alpha = 0.4f))
+            .background(EglooColors.TealDarker.copy(alpha = 0.4f))
             .padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        _root_ide_package_.com.trishit.egloo.ui.components.PingoAvatar(size = 32.dp)
+        PingoAvatar(size = 32.dp)
         Column {
             Text(
                 text = "Pingo",
                 style = MaterialTheme.typography.labelMedium,
-                color = _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealLighter,
+                color = EglooColors.TealLighter,
             )
             Spacer(Modifier.height(2.dp))
             Text(
@@ -255,10 +255,14 @@ fun PingoMessageBubble(message: String, modifier: Modifier = Modifier) {
 fun Instant.timeAgo(): String {
     val now = Clock.System.now()
     val diff = now - this
+    val minutes = diff.inWholeMinutes
+    val hours = diff.inWholeHours
+    val days = diff.inWholeDays
+    
     return when {
-        diff.inWholeMinutes < 1  -> "just now"
-        diff.inWholeMinutes < 60 -> "${diff.inWholeMinutes}m ago"
-        diff.inWholeHours < 24   -> "${diff.inWholeHours}h ago"
-        else                     -> "${diff.inWholeDays}d ago"
+        minutes < 1L  -> "just now"
+        minutes < 60L -> "${minutes}m ago"
+        hours < 24L   -> "${hours}h ago"
+        else          -> "${days}d ago"
     }
 }

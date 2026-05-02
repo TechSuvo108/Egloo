@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Destinations
@@ -12,12 +11,12 @@ import kotlinx.serialization.builtins.serializer
 
 @Serializable
 sealed interface Destination {
-    @Serializable data object Onboarding : com.trishit.egloo.navigation.Destination
-    @Serializable data object Home       : com.trishit.egloo.navigation.Destination
-    @Serializable data object Chat       : com.trishit.egloo.navigation.Destination
-    @Serializable data object Topics     : com.trishit.egloo.navigation.Destination
-    @Serializable data object Sources    : com.trishit.egloo.navigation.Destination
-    @Serializable data object Settings   : com.trishit.egloo.navigation.Destination
+    @Serializable data object Onboarding : Destination
+    @Serializable data object Home       : Destination
+    @Serializable data object Chat       : Destination
+    @Serializable data object Topics     : Destination
+    @Serializable data object Sources    : Destination
+    @Serializable data object Settings   : Destination
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -27,7 +26,7 @@ sealed interface Destination {
 interface RootComponent {
     val stack: Value<ChildStack<*, Child>>
 
-    fun navigateTo(destination: com.trishit.egloo.navigation.Destination)
+    fun navigateTo(destination: Destination)
     fun onBackPressed()
 
     sealed class Child {
@@ -47,35 +46,35 @@ interface RootComponent {
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val isFirstLaunch: Boolean = true,
-) : com.trishit.egloo.navigation.RootComponent, ComponentContext by componentContext {
+) : RootComponent, ComponentContext by componentContext {
 
-    private val navigation = StackNavigation<com.trishit.egloo.navigation.Destination>()
+    private val navigation = StackNavigation<Destination>()
 
-    private val startDestination: com.trishit.egloo.navigation.Destination =
-        if (isFirstLaunch) _root_ide_package_.com.trishit.egloo.navigation.Destination.Onboarding else _root_ide_package_.com.trishit.egloo.navigation.Destination.Home
+    private val startDestination: Destination =
+        if (isFirstLaunch) Destination.Onboarding else Destination.Home
 
-    override val stack: Value<ChildStack<*, com.trishit.egloo.navigation.RootComponent.Child>> =
+    override val stack: Value<ChildStack<*, RootComponent.Child>> =
         childStack(
             source         = navigation,
-            serializer     = _root_ide_package_.com.trishit.egloo.navigation.Destination.serializer(),
+            serializer     = Destination.serializer(),
             initialStack   = { listOf(startDestination) },
             handleBackButton = true,
             childFactory   = ::createChild,
         )
 
     private fun createChild(
-        destination: com.trishit.egloo.navigation.Destination,
+        destination: Destination,
         componentContext: ComponentContext,
-    ): com.trishit.egloo.navigation.RootComponent.Child = when (destination) {
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Onboarding -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.OnboardingChild(componentContext)
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Home       -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.HomeChild(componentContext)
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Chat       -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.ChatChild(componentContext)
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Topics     -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.TopicsChild(componentContext)
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Sources    -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.SourcesChild(componentContext)
-        _root_ide_package_.com.trishit.egloo.navigation.Destination.Settings   -> _root_ide_package_.com.trishit.egloo.navigation.RootComponent.Child.SettingsChild(componentContext)
+    ): RootComponent.Child = when (destination) {
+        Destination.Onboarding -> RootComponent.Child.OnboardingChild(componentContext)
+        Destination.Home       -> RootComponent.Child.HomeChild(componentContext)
+        Destination.Chat       -> RootComponent.Child.ChatChild(componentContext)
+        Destination.Topics     -> RootComponent.Child.TopicsChild(componentContext)
+        Destination.Sources    -> RootComponent.Child.SourcesChild(componentContext)
+        Destination.Settings   -> RootComponent.Child.SettingsChild(componentContext)
     }
 
-    override fun navigateTo(destination: com.trishit.egloo.navigation.Destination) {
+    override fun navigateTo(destination: Destination) {
         navigation.bringToFront(destination)
     }
 

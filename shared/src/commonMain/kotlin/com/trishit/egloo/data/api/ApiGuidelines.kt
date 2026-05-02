@@ -1,4 +1,4 @@
-package com.egloo.data.api
+package com.trishit.egloo.data.api
 
 // =============================================================================
 // EGLOO — KTOR API INTEGRATION GUIDE

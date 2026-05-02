@@ -14,8 +14,6 @@ import androidx.compose.ui.unit.*
 import com.trishit.egloo.ui.components.PingoAvatar
 import com.trishit.egloo.ui.theme.EglooColors
 
-data class OnboardingState(val currentPage: Int = 0)
-
 @Composable
 fun OnboardingScreen(onComplete: () -> Unit) {
     var page by remember { mutableStateOf(0) }
@@ -31,11 +29,11 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             label = "onboarding",
         ) { currentPage ->
             when (currentPage) {
-                0 -> _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingWelcome()
-                1 -> _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingHowItWorks()
-                2 -> _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingPrivacy()
-                3 -> _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingReady()
-                else -> _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingWelcome()
+                0 -> OnboardingWelcome()
+                1 -> OnboardingHowItWorks()
+                2 -> OnboardingPrivacy()
+                3 -> OnboardingReady()
+                else -> OnboardingWelcome()
             }
         }
 
@@ -56,8 +54,8 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                             .size(if (i == page) 20.dp else 6.dp, 6.dp)
                             .clip(RoundedCornerShape(3.dp))
                             .background(
-                                if (i == page) _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealPrimary
-                                else _root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealPrimary.copy(alpha = 0.25f)
+                                if (i == page) EglooColors.TealPrimary
+                                else EglooColors.TealPrimary.copy(alpha = 0.25f)
                             )
                     )
                 }
@@ -108,7 +106,7 @@ private fun OnboardingPage(
             modifier = Modifier
                 .size(120.dp)
                 .clip(RoundedCornerShape(32.dp))
-                .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealDarker.copy(alpha = 0.3f)),
+                .background(EglooColors.TealDarker.copy(alpha = 0.3f)),
             contentAlignment = Alignment.Center,
         ) {
             Text(emoji, style = MaterialTheme.typography.displayLarge)
@@ -139,29 +137,29 @@ private fun OnboardingPage(
 }
 
 @Composable
-private fun OnboardingWelcome() = _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingPage(
+private fun OnboardingWelcome() = OnboardingPage(
     emoji = "🐧",
     title = "Meet Pingo",
     body = "Your personal AI assistant who lives in an igloo and keeps your knowledge safe, organised, and always at hand.",
 )
 
 @Composable
-private fun OnboardingHowItWorks() = _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingPage(
+private fun OnboardingHowItWorks() = OnboardingPage(
     emoji = "❄",
     title = "Your igloo of knowledge",
     body = "Connect Gmail, Slack, and Drive. Pingo reads everything and stores it safely in the igloo — then answers your questions in plain English.",
     extraContent = {
         // How it works steps
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            _root_ide_package_.com.trishit.egloo.ui.screens.HowItWorksStep("1", "Connect your tools")
-            _root_ide_package_.com.trishit.egloo.ui.screens.HowItWorksStep("2", "Pingo reads & understands")
-            _root_ide_package_.com.trishit.egloo.ui.screens.HowItWorksStep("3", "Ask anything, get answers")
+            HowItWorksStep("1", "Connect your tools")
+            HowItWorksStep("2", "Pingo reads & understands")
+            HowItWorksStep("3", "Ask anything, get answers")
         }
     }
 )
 
 @Composable
-private fun OnboardingPrivacy() = _root_ide_package_.com.trishit.egloo.ui.screens.OnboardingPage(
+private fun OnboardingPrivacy() = OnboardingPage(
     emoji = "🔒",
     title = "Your data stays yours",
     body = "Everything lives in your igloo. Your data is encrypted and never used to train AI models. Pingo works for you, not for us.",
@@ -181,10 +179,10 @@ private fun OnboardingReady() {
             modifier = Modifier
                 .size(140.dp)
                 .clip(RoundedCornerShape(40.dp))
-                .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealDarker.copy(alpha = 0.4f)),
+                .background(EglooColors.TealDarker.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center,
         ) {
-            _root_ide_package_.com.trishit.egloo.ui.components.PingoAvatar(size = 80.dp)
+            PingoAvatar(size = 80.dp)
         }
         Spacer(Modifier.height(32.dp))
         Text(
@@ -217,7 +215,7 @@ private fun HowItWorksStep(number: String, label: String) {
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(_root_ide_package_.com.trishit.egloo.ui.theme.EglooColors.TealPrimary),
+                .background(EglooColors.TealPrimary),
             contentAlignment = Alignment.Center,
         ) {
             Text(number, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
