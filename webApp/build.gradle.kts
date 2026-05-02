@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -15,14 +16,30 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        outputModuleName = "egloo"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "egloo.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    // Serve the wasmJsMain resources directory for hot-reload
+                    static = (static ?: mutableListOf()).apply {
+                        add(project.projectDir.path)
+                        add(project.rootDir.path)
+                    }
+                }
+            }
+        }
         binaries.executable()
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(projects.shared)
-
+            implementation(libs.ktor.client.js)
             implementation(libs.compose.ui)
+            implementation(libs.decompose)
+            implementation(libs.decompose.extensions.compose)
+            implementation(libs.koin.core)
         }
     }
 }
