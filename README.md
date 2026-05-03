@@ -3,7 +3,7 @@
 This repository contains Kotlin Multiplatform template projects updated to AGP 9 and using the new multiplatform
 project structure we'll be introducing soon.
 
-## Why this exists
+## Why this exists 
 
 This is provided to address the delay in AGP 9 support for IntelliJ IDEA. While that work is ongoing, you can use these
 updated starter templates in Android Studio.
