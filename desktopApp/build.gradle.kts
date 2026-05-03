@@ -8,10 +8,11 @@ plugins {
 
 dependencies {
     implementation(projects.shared)
+    implementation(libs.compose.window.styler)
+    implementation(libs.koin.compose)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)
-    implementation(libs.compose.window.styler)
     implementation(libs.ktor.client.core)
     implementation(libs.decompose)
     implementation(libs.decompose.extensions.compose)
@@ -22,6 +23,10 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.trishit.egloo.MainKt"
+        jvmArgs += listOf(
+            "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED"
+        )
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

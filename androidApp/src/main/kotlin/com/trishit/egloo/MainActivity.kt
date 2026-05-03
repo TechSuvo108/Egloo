@@ -19,18 +19,23 @@ class MainActivity : ComponentActivity() {
         val root = DefaultRootComponent(
             componentContext = defaultComponentContext(),
             isFirstLaunch = isFirstLaunch(),
+            onOnboardingComplete = { markOnboardingDone() }
         )
         setContent {
-            RootContent(component = root)
+            org.koin.compose.KoinContext {
+                RootContent(component = root)
+            }
         }
     }
+
     private fun isFirstLaunch(): Boolean {
         val prefs = getSharedPreferences("egloo_prefs", MODE_PRIVATE)
-        return if (prefs.getBoolean("onboarding_done", false)) {
-            false
-        } else {
-            prefs.edit { putBoolean("onboarding_done", true) }
-            true
+        return !prefs.getBoolean("onboarding_done", false)
+    }
+
+    private fun markOnboardingDone() {
+        getSharedPreferences("egloo_prefs", MODE_PRIVATE).edit {
+            putBoolean("onboarding_done", true)
         }
     }
 }

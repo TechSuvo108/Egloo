@@ -36,14 +36,15 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary      = Color.White,
     background       = EglooColors.NightDeep,
     surface          = EglooColors.NightMid,
-    onBackground     = EglooColors.SnowWhite,
-    onSurface        = EglooColors.SnowWhite,
+    onBackground     = Color.White,
+    onSurface        = Color.White,
+    onSurfaceVariant = EglooColors.SnowWhite,
     error            = EglooColors.Error,
     tertiary         = EglooColors.BeakAmber,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary          = EglooColors.TealPrimary,
+    primary          = EglooColors.TealDark,
     onPrimary        = Color.White,
     primaryContainer = EglooColors.TealLighter,
     secondary        = EglooColors.BlueDark,
@@ -52,6 +53,7 @@ private val LightColorScheme = lightColorScheme(
     surface          = Color.White,
     onBackground     = EglooColors.NightDeep,
     onSurface        = EglooColors.NightDeep,
+    onSurfaceVariant = Color(0xFF44474E),
     error            = EglooColors.Error,
     tertiary         = EglooColors.BeakDark,
 )

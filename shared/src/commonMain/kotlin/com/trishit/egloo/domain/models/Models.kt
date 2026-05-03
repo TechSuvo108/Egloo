@@ -1,6 +1,7 @@
 package com.trishit.egloo.domain.models
 
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 // ─────────────────────────────────────────────
 //  Core domain models
@@ -79,20 +80,20 @@ data class Topic(
 sealed class ChatMessage {
     abstract val id: String
     abstract val text: String
-    abstract val sentAt: kotlinx.datetime.Instant
+    abstract val sentAt: Instant
 
     @Serializable
     data class User(
         override val id: String,
         override val text: String,
-        override val sentAt: kotlinx.datetime.Instant
+        override val sentAt: Instant
     ) : ChatMessage()
 
     @Serializable
     data class Pingo(
         override val id: String,
         override val text: String,
-        override val sentAt: kotlinx.datetime.Instant,
+        override val sentAt: Instant,
         val sources: List<ChatSource> = emptyList(),
         val isStreaming: Boolean = false
     ) : ChatMessage()
@@ -107,7 +108,7 @@ data class ChatSource(
 @Serializable
 data class AppSettings(
     val userName: String = "User",
-    val darkTheme: Boolean = true,
+    val darkTheme: Boolean = false,
     val pingoGreetingsEnabled: Boolean = true,
     val digestNotificationsEnabled: Boolean = true,
     val syncFrequencyHours: Int = 4

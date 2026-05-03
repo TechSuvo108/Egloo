@@ -158,13 +158,13 @@ fun PingoAvatar(size: Dp = 36.dp, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(EglooColors.TealDarker),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "P",
             style = MaterialTheme.typography.titleMedium,
-            color = EglooColors.TealLighter,
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -228,7 +228,7 @@ fun PingoMessageBubble(message: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(EglooColors.TealDarker.copy(alpha = 0.4f))
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
             .padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
@@ -238,7 +238,7 @@ fun PingoMessageBubble(message: String, modifier: Modifier = Modifier) {
             Text(
                 text = "Pingo",
                 style = MaterialTheme.typography.labelMedium,
-                color = EglooColors.TealLighter,
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(2.dp))
             Text(

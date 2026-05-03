@@ -243,7 +243,10 @@ private fun SourceRow(
 // =============================================================================
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = koinInject()) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel = koinInject(),
+    onRestartOnboarding: () -> Unit = {}
+) {
     val state by viewModel.uiState.collectAsState()
     val settings = state.settings
 
@@ -290,6 +293,20 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinInject()) {
                     hours = settings.syncFrequencyHours,
                     onSelect = viewModel::setSyncFrequency,
                 )
+            }
+        }
+
+        item {
+            SettingsSection("Debug") {
+                Button(
+                    onClick = onRestartOnboarding,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("Restart Onboarding")
+                }
             }
         }
 

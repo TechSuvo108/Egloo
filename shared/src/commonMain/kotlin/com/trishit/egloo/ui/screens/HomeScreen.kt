@@ -120,20 +120,29 @@ private fun HomeContent(
 
 @Composable
 private fun StatChip(label: String, highlight: Boolean = false, modifier: Modifier = Modifier) {
+    val backgroundColor = if (highlight) {
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    val contentColor = if (highlight) {
+        MaterialTheme.colorScheme.onTertiaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(
-                if (highlight) EglooColors.BeakAmber.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
+            .background(backgroundColor)
             .padding(horizontal = 10.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (highlight) EglooColors.BeakAmber else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = contentColor,
         )
     }
 }

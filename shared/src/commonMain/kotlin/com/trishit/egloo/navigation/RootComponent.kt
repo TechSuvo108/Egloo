@@ -46,6 +46,7 @@ interface RootComponent {
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val isFirstLaunch: Boolean = true,
+    private val onOnboardingComplete: () -> Unit = {},
 ) : RootComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Destination>()
@@ -75,6 +76,9 @@ class DefaultRootComponent(
     }
 
     override fun navigateTo(destination: Destination) {
+        if (destination == Destination.Home && stack.value.active.instance is RootComponent.Child.OnboardingChild) {
+            onOnboardingComplete()
+        }
         navigation.bringToFront(destination)
     }
 

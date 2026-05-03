@@ -4,6 +4,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.resume
 import com.trishit.egloo.di.eglooModule
 import com.trishit.egloo.navigation.DefaultRootComponent
 import com.trishit.egloo.navigation.RootContent
@@ -14,20 +15,22 @@ import web.storage.localStorage
 fun main() {
     startKoin { modules(eglooModule) }
     val lifecycle = LifecycleRegistry()
+    
     val root = DefaultRootComponent(
         componentContext = DefaultComponentContext(lifecycle),
         isFirstLaunch = wasmIsFirstLaunch(),
+        onOnboardingComplete = {
+            localStorage.setItem("egloo_onboarding_done", "true")
+        }
     )
-    ComposeViewport {
-        RootContent(component = root, darkTheme = true)
+    
+    lifecycle.resume()
+
+    ComposeViewport(viewportContainerId = "compose-root") {
+        RootContent(component = root)
     }
 }
+
 private fun wasmIsFirstLaunch(): Boolean {
-    val key = "egloo_onboarding_done"
-    return if (localStorage.getItem(key) != null) {
-        false
-    } else {
-        localStorage.setItem(key, "true")
-        true
-    }
+    return localStorage.getItem("egloo_onboarding_done") == null
 }

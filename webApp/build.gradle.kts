@@ -17,14 +17,16 @@ kotlin {
     wasmJs {
         browser()
         outputModuleName = "egloo"
+        val projectDirPath = project.projectDir.path
+        val rootDirPath = project.rootDir.path
         browser {
             commonWebpackConfig {
-                outputFileName = "egloo.js"
+                outputFileName = "webApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     // Serve the wasmJsMain resources directory for hot-reload
                     static = (static ?: mutableListOf()).apply {
-                        add(project.projectDir.path)
-                        add(project.rootDir.path)
+                        add(projectDirPath)
+                        add(rootDirPath)
                     }
                 }
             }
@@ -40,6 +42,7 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.extensions.compose)
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
             implementation(libs.wrappers.browser)
         }
     }

@@ -1,8 +1,7 @@
 package com.trishit.egloo.data.dummy
 
 import com.trishit.egloo.domain.models.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+
 
 object DummyData {
 

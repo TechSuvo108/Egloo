@@ -1,8 +1,11 @@
 package com.trishit.egloo.navigation
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,8 +16,11 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.*
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.trishit.egloo.data.repositories.SettingsRepository
 import com.trishit.egloo.ui.screens.*
 import com.trishit.egloo.ui.theme.EglooTheme
+import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 
 // ── Bottom nav items ──────────────────────────────────────────────────────────
 
@@ -40,8 +46,8 @@ private val navItems = listOf(
     ),
     NavItem(
         "Topics",
-        Icons.Default.List,
-        Icons.Default.List,
+        Icons.AutoMirrored.Filled.List,
+        Icons.AutoMirrored.Filled.List,
         Destination.Topics
     ),
     NavItem(
@@ -61,46 +67,107 @@ private val navItems = listOf(
 // ── Root content — shared across Android, iOS, Desktop ───────────────────────
 
 @Composable
-fun RootContent(component: RootComponent, darkTheme: Boolean = true) {
-    EglooTheme(darkTheme = darkTheme) {
-        val stack by component.stack.subscribeAsState()
-        val activeChild = stack.active.instance
+fun RootContent(component: RootComponent) {
+    AdaptiveRootContent(component)
+}
 
-        // Show onboarding without chrome
-        if (activeChild is RootComponent.Child.OnboardingChild) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background,
-            ) {
-                OnboardingScreen(
-                    onComplete = { component.navigateTo(Destination.Home) }
-                )
-            }
-            return@EglooTheme
-        }
+@Composable
+fun AdaptiveRootContent(component: RootComponent) {
+    KoinContext {
+        val settingsRepo = koinInject<SettingsRepository>()
+        val settings by settingsRepo.getSettings().collectAsState(initial = null)
+        val isDarkTheme = settings?.darkTheme ?: isSystemInDarkTheme()
 
-        // Main app shell
-        Scaffold(
-            bottomBar = {
-                EglooBottomBar(
-                    activeDestination = activeChild.toDestination(),
-                    onNavigate = component::navigateTo,
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background,
-        ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                Children(
-                    stack = stack,
-                    animation = stackAnimation(fade() + scale()),
-                ) { child ->
-                    when (val instance = child.instance) {
-                        is RootComponent.Child.HomeChild -> HomeScreen()
-                        is RootComponent.Child.ChatChild -> ChatScreen()
-                        is RootComponent.Child.TopicsChild -> TopicsScreen()
-                        is RootComponent.Child.SourcesChild -> SourcesScreen()
-                        is RootComponent.Child.SettingsChild -> SettingsScreen()
-                        is RootComponent.Child.OnboardingChild -> {} // handled above
+        EglooTheme(darkTheme = isDarkTheme) {
+            val stack by component.stack.subscribeAsState()
+            val activeChild = stack.active.instance
+
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val isDesktopLayout = maxWidth >= 600.dp
+
+                if (activeChild is RootComponent.Child.OnboardingChild) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
+                        OnboardingScreen(
+                            onComplete = { component.navigateTo(Destination.Home) }
+                        )
+                    }
+                } else {
+                    if (isDesktopLayout) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background,
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                EglooNavRail(
+                                    activeDestination = activeChild.toDestination(),
+                                    onNavigate = component::navigateTo,
+                                )
+
+                                VerticalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    modifier = Modifier.fillMaxHeight(),
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                ) {
+                                    Children(
+                                        stack = stack,
+                                        animation = stackAnimation(fade()),
+                                    ) { child ->
+                                        Surface(
+                                            modifier = Modifier.fillMaxSize(),
+                                            color = MaterialTheme.colorScheme.background
+                                        ) {
+                                            when (child.instance) {
+                                                is RootComponent.Child.HomeChild -> HomeScreen()
+                                                is RootComponent.Child.ChatChild -> ChatScreen()
+                                                is RootComponent.Child.TopicsChild -> TopicsScreen()
+                                                is RootComponent.Child.SourcesChild -> SourcesScreen()
+                                                is RootComponent.Child.SettingsChild -> SettingsScreen(
+                                                    onRestartOnboarding = { component.navigateTo(Destination.Onboarding) }
+                                                )
+                                                is RootComponent.Child.OnboardingChild -> {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Main app shell for mobile
+                        Scaffold(
+                            bottomBar = {
+                                EglooBottomBar(
+                                    activeDestination = activeChild.toDestination(),
+                                    onNavigate = component::navigateTo,
+                                )
+                            },
+                            containerColor = MaterialTheme.colorScheme.background,
+                        ) { innerPadding ->
+                            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                                Children(
+                                    stack = stack,
+                                    animation = stackAnimation(fade() + scale()),
+                                ) { child ->
+                                    when (val instance = child.instance) {
+                                        is RootComponent.Child.HomeChild -> HomeScreen()
+                                        is RootComponent.Child.ChatChild -> ChatScreen()
+                                        is RootComponent.Child.TopicsChild -> TopicsScreen()
+                                        is RootComponent.Child.SourcesChild -> SourcesScreen()
+                                        is RootComponent.Child.SettingsChild -> SettingsScreen(
+                                            onRestartOnboarding = { component.navigateTo(Destination.Onboarding) }
+                                        )
+                                        is RootComponent.Child.OnboardingChild -> {} // handled above
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -182,63 +249,7 @@ fun EglooNavRail(
     }
 }
 
-// ── Desktop root content (nav rail layout) ────────────────────────────────────
-
-@Composable
-fun DesktopRootContent(
-    component: RootComponent,
-    darkTheme: Boolean = true
-) {
-    EglooTheme(darkTheme = darkTheme) {
-        val stack by component.stack.subscribeAsState()
-        val activeChild = stack.active.instance
-
-        if (activeChild is RootComponent.Child.OnboardingChild) {
-            Surface(Modifier.fillMaxSize(), color = Color.Transparent) {
-                OnboardingScreen(onComplete = {
-                    component.navigateTo(Destination.Home)
-                })
-            }
-            return@EglooTheme
-        }
-
-        // Color.Transparent is required — any opaque fill paints over the Mica/
-        // Acrylic layer the OS renders behind the window. Individual surfaces
-        // (NavRail, content cards) keep their own MaterialTheme surface colors.
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color.Transparent,
-        ) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                EglooNavRail(
-                    activeDestination = activeChild.toDestination(),
-                    onNavigate = component::navigateTo,
-                )
-
-                VerticalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    modifier = Modifier.fillMaxHeight(),
-                )
-
-                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                    Children(
-                        stack = stack,
-                        animation = stackAnimation(fade()),
-                    ) { child ->
-                        when (child.instance) {
-                            is RootComponent.Child.HomeChild -> HomeScreen()
-                            is RootComponent.Child.ChatChild -> ChatScreen()
-                            is RootComponent.Child.TopicsChild -> TopicsScreen()
-                            is RootComponent.Child.SourcesChild -> SourcesScreen()
-                            is RootComponent.Child.SettingsChild -> SettingsScreen()
-                            is RootComponent.Child.OnboardingChild -> {}
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+// ── Removed DesktopRootContent redundant implementation ──────────────────────────
 
 // ── Helper extension ──────────────────────────────────────────────────────────
 
