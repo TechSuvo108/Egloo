@@ -34,6 +34,22 @@ async def get_source_by_type(
     return result.scalar_one_or_none()
 
 
+async def get_source_by_id(
+    db: AsyncSession,
+    source_id: UUID,
+    user_id: UUID,
+) -> Optional[DataSource]:
+    """Return the DataSource row for a specific source UUID (scoped to user), or None."""
+    result = await db.execute(
+        select(DataSource).where(
+            DataSource.id == source_id,
+            DataSource.user_id == user_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+
 async def get_all_sources(
     db: AsyncSession,
     user_id: UUID,

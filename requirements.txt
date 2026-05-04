@@ -23,3 +23,9 @@ google-api-python-client
 slack_sdk
 python-multipart
 httpx
+beautifulsoup4
+lxml
+python-docx
+PyMuPDF
+tiktoken
+numpy
