@@ -39,3 +39,6 @@ openai
 sse-starlette
 tenacity
 firebase-admin
+scikit-learn
+numpy
+

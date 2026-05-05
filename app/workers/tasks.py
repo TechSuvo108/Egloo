@@ -80,6 +80,14 @@ def sync_source(self, source_id: str, user_id: str, job_id: str):
                     result=result,
                 )
 
+                # Auto-refresh topics after successful ingestion
+                refresh_topics_for_user.delay(
+                    user_id=user_id,
+                    strategy="auto",
+                    max_topics=10,
+                )
+                print(f"[INFO] Queued topic refresh after ingestion")
+
             except Exception as e:
                 await update_job(
                     job_id,
@@ -91,7 +99,8 @@ def sync_source(self, source_id: str, user_id: str, job_id: str):
                 raise
 
     try:
-        run_async(_run())
+        import asyncio
+        return asyncio.run(_run())
     except Exception as exc:
         raise self.retry(exc=exc)
 
@@ -229,3 +238,43 @@ def generate_digests_for_all_users():
                 print(f"  -> Queued digest for {user.email}")
 
     run_async(_run())
+
+
+# ─── Task 6: Refresh topics for one user ─────────────────────────────────────
+
+@celery_app.task(
+    bind=True,
+    name="app.workers.tasks.refresh_topics_for_user",
+    max_retries=2,
+    default_retry_delay=60,
+)
+def refresh_topics_for_user(
+    self,
+    user_id: str,
+    strategy: str = "auto",
+    max_topics: int = 10,
+):
+    """
+    Celery task: re-cluster topics for one user.
+    Can be triggered manually via API or after ingestion completes.
+    """
+    async def _run():
+        from app.database import AsyncSessionLocal
+        from app.services.topic_service import refresh_topics
+
+        print(f"[INFO] Celery: refreshing topics for user {user_id}")
+        async with AsyncSessionLocal() as db:
+            result = await refresh_topics(
+                db=db,
+                user_id=user_id,
+                strategy=strategy,
+                max_topics=max_topics,
+            )
+            print(f"[OK] Celery topics done: {result}")
+            return result
+
+    try:
+        import asyncio
+        return asyncio.run(_run())
+    except Exception as exc:
+        raise self.retry(exc=exc)

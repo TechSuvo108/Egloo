@@ -4,6 +4,7 @@ from app.models.document_chunk import DocumentChunk
 from app.models.digest import Digest
 from app.models.query_history import QueryHistory
 from app.models.saved_item import SavedItem
+from app.models.topic import Topic
 
 __all__ = [
     "User",
@@ -12,4 +13,5 @@ __all__ = [
     "Digest",
     "QueryHistory",
     "SavedItem",
+    "Topic",
 ]
