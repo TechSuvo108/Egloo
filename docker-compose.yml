@@ -1,7 +1,8 @@
 services:
 
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: egloo
       POSTGRES_PASSWORD: egloo
@@ -11,37 +12,52 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U egloo"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U egloo -d egloo"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 5s
 
   chroma:
-    image: chromadb/chroma
+    image: chromadb/chroma:latest
+    restart: unless-stopped
     ports:
       - "8001:8000"
     volumes:
       - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env.docker
     environment:
-      - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://egloo:egloo@postgres:5432/egloo
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,20 +67,34 @@ services:
         condition: service_started
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     command: >
       celery -A app.workers.celery_app:celery_app worker
       --loglevel=info
       --concurrency=2
       --queues=celery
+      --hostname=worker@%h
     env_file:
-      - .env
+      - .env.docker
     environment:
-      - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://egloo:egloo@postgres:5432/egloo
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,27 +102,33 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+    healthcheck:
+      disable: true
 
   beat:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     command: >
       celery -A app.workers.celery_app:celery_app beat
       --loglevel=info
       --scheduler celery.beat:PersistentScheduler
-      -s /app/data/celerybeat-schedule
+      -s /app/celerybeat-schedule
     env_file:
-      - .env
+      - .env.docker
     environment:
-      - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://egloo:egloo@postgres:5432/egloo
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
     volumes:
       - .:/app
-      - beat_data:/app/data
+    healthcheck:
+      disable: true
 
 volumes:
   postgres_data:
+  redis_data:
   chroma_data:
-  beat_data:
