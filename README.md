@@ -1,7 +1,7 @@
-# Egloo Backend - PenGo Second Brain
+# Egloo Backend - Pingo Second Brain
 
 Egloo is a second brain application that connects your Gmail,
-Slack, and Google Drive into a single intelligent assistant named PenGo.
+Slack, and Google Drive into a single intelligent assistant named Pingo.
 
 ## Tech Stack
 
@@ -57,7 +57,7 @@ Health:     http://localhost:8000/health
 | Auth     | /api/v1/auth        | Register, login, JWT tokens    |
 | Sources  | /api/v1/sources     | OAuth connect Gmail/Slack/Drive|
 | Ingest   | /api/v1/ingest      | Fetch, chunk, embed, store     |
-| Query    | /api/v1/query       | Ask PenGo questions (RAG)      |
+| Query    | /api/v1/query       | Ask Pingo questions (RAG)      |
 | Digest   | /api/v1/digest      | Daily auto-generated summaries |
 | Topics   | /api/v1/topics      | Auto-clustered topic groups    |
 | Saved    | /api/v1/saved       | Bookmark digests and answers   |

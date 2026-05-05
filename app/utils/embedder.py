@@ -15,7 +15,7 @@ def get_embedding_model() -> SentenceTransformer:
     """
     global _model
     if _model is None:
-        print("[PenGo] Loading embedding model for the first time...")
+        print("[Pingo] Loading embedding model for the first time...")
         _model = SentenceTransformer("all-MiniLM-L6-v2")
         print("[OK] Embedding model loaded")
     return _model

@@ -108,7 +108,7 @@ def print_env_report():
     if is_valid:
         print(
             "\n[OK] Environment is valid - "
-            "PenGo is ready to hatch!\n"
+            "Pingo is ready to hatch!\n"
         )
     else:
         print(

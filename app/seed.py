@@ -15,7 +15,7 @@ async def seed():
             db,
             email="demo@egloo.app",
             password="password123",
-            full_name="PenGo Demo",
+            full_name="Pingo Demo",
         )
         print(f"[OK] Demo user created: {user.email}")
         print(f"     Access token: {access_token[:40]}...")

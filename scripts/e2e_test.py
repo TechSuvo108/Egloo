@@ -101,7 +101,7 @@ async def test_e2e():
             print(f"✅ Saved items list: {len(list_res.json())} items")
 
     print("\n" + "=" * 55)
-    print("✅ E2E TEST COMPLETE — PenGo is healthy! 🐧")
+    print("✅ E2E TEST COMPLETE — Pingo is healthy! 🐧")
     print("=" * 55 + "\n")
 
 if __name__ == "__main__":

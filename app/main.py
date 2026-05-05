@@ -13,7 +13,7 @@ from app.routers import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── Startup ───────────────────────────────────────────────────────────────
-    print("\n🐧 Egloo API starting — PenGo is hatching...")
+    print("\n🐧 Egloo API starting — Pingo is hatching...")
 
     # Validate environment
     from app.utils.env_validator import print_env_report
@@ -36,21 +36,21 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️  ChromaDB not available: {e}")
 
-    print("🐧 PenGo is ready!\n")
+    print("🐧 Pingo is ready!\n")
 
     yield
 
     # ── Shutdown ──────────────────────────────────────────────────────────────
-    print("🐧 Egloo API shutting down — PenGo is sleeping...")
+    print("🐧 Egloo API shutting down — Pingo is sleeping...")
 
 
 # ── Create app ────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="Egloo API — PenGo Second Brain",
+    title="Egloo API — Pingo Second Brain",
     version="1.0.0",
     description="""
-## 🐧 Egloo — Your Second Brain, Powered by PenGo
+## 🐧 Egloo — Your Second Brain, Powered by Pingo
 
 Egloo connects your Gmail, Slack, and Google Drive into a single
 intelligent assistant. Ask questions, get daily digests, and never
@@ -60,7 +60,7 @@ miss an action item again.
 - **Auth** — JWT-based register, login, logout with Redis blacklist
 - **Sources** — Connect Gmail, Slack, Google Drive via OAuth 2.0
 - **Ingest** — Fetch, chunk, embed, and store your data in ChromaDB
-- **Query** — Ask PenGo anything about your data (RAG pipeline)
+- **Query** — Ask Pingo anything about your data (RAG pipeline)
 - **Digest** — Auto-generated daily summaries with action items
 - **Topics** — Auto-clustered topic groups from your data
 - **Saved** — Bookmark digests and query results
@@ -72,7 +72,7 @@ Gemini → Groq → OpenRouter (automatic failover)
 1. `POST /api/v1/auth/register` — create account
 2. `GET /api/v1/sources/connect/gmail` — connect Gmail
 3. `POST /api/v1/ingest/trigger-direct/{source_id}` — ingest data
-4. `POST /api/v1/query/ask` — ask PenGo a question
+4. `POST /api/v1/query/ask` — ask Pingo a question
 5. `GET /api/v1/digest/today` — view daily digest
     """,
     lifespan=lifespan,
@@ -109,7 +109,7 @@ app.include_router(saved.router,   prefix="/api/v1")
 async def root():
     return {
         "app": "Egloo",
-        "assistant": "PenGo",
+        "assistant": "Pingo",
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs",
@@ -185,6 +185,6 @@ async def health():
         content={
             "status": "healthy" if all_ok else "degraded",
             "services": results,
-            "assistant": "PenGo 🐧",
+            "assistant": "Pingo 🐧",
         },
     )

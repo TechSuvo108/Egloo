@@ -29,7 +29,7 @@ async def create_job(
         "source_type": source_type,
         "status": "queued",
         "progress": 0,
-        "message": "Job queued. PenGo is getting ready...",
+        "message": "Job queued. Pingo is getting ready...",
         "result": None,
         "error": None,
         "created_at": datetime.now(timezone.utc).isoformat(),

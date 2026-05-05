@@ -33,7 +33,7 @@ def sync_source(self, source_id: str, user_id: str, job_id: str):
             job_id,
             status="started",
             progress=10,
-            message="PenGo started fetching your data...",
+            message="Pingo started fetching your data...",
         )
 
         async with AsyncSessionLocal() as db:
@@ -64,7 +64,7 @@ def sync_source(self, source_id: str, user_id: str, job_id: str):
                     job_id,
                     status="success",
                     progress=100,
-                    message=f"PenGo finished ingesting {source.source_type}!",
+                    message=f"Pingo finished ingesting {source.source_type}!",
                     result=result,
                 )
 
@@ -129,7 +129,7 @@ def sync_all_sources_for_user(self, user_id: str):
                     user_id=user_id,
                     job_id=job_id,
                 )
-                print(f"[PenGo] Queued sync for {source.source_type} (job: {job_id})")
+                print(f"[Pingo] Queued sync for {source.source_type} (job: {job_id})")
 
     try:
         return asyncio.run(_run())
@@ -155,7 +155,7 @@ def auto_sync_all_users():
                 select(User).where(User.is_active == True)
             )
             users = result.scalars().all()
-            print(f"[PenGo] Auto-sync: found {len(users)} active users")
+            print(f"[Pingo] Auto-sync: found {len(users)} active users")
 
             for user in users:
                 sync_all_sources_for_user.delay(user_id=str(user.id))
@@ -226,7 +226,7 @@ def generate_digests_for_all_users():
                 select(User).where(User.is_active == True)
             )
             users = result.scalars().all()
-            print(f"[PenGo] Digest generation: {len(users)} users")
+            print(f"[Pingo] Digest generation: {len(users)} users")
 
             for user in users:
                 generate_digest_for_user.delay(user_id=str(user.id))

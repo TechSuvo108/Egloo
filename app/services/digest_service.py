@@ -142,7 +142,7 @@ async def generate_digest(
     if target_date is None:
         target_date = datetime.now(timezone.utc).date()
 
-    print(f"[INFO] PenGo generating digest for user {user_id} date {target_date}")
+    print(f"[INFO] Pingo generating digest for user {user_id} date {target_date}")
 
     # ── Step 1: Check existing ────────────────────────────────────────────────
     if not force_regenerate:

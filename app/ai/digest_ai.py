@@ -4,7 +4,7 @@ from app.ai.llm_router import call_llm_simple
 
 # ─── System prompt for digest generation ─────────────────────────────────────
 
-DIGEST_SYSTEM_PROMPT = """You are PenGo, an intelligent assistant for the
+DIGEST_SYSTEM_PROMPT = """You are Pingo, an intelligent assistant for the
 Egloo second brain app. You help knowledge workers stay on top of their
 information by generating clear, concise, actionable daily summaries.
 
@@ -223,7 +223,7 @@ async def generate_summary(
     if not topics:
         return (
             "No significant activity found in the last 24 hours. "
-            "PenGo has nothing to report. 🐧"
+            "Pingo has nothing to report. 🐧"
         )
 
     topics_text = "\n".join(
@@ -261,7 +261,7 @@ Write the summary now. Plain text only. No bullet points. No headers."""
         print(f"[WARNING] Summary generation failed: {e}")
         topic_names = ", ".join(t["name"] for t in topics[:3])
         return (
-            f"Today PenGo found activity across {len(topics)} topics: "
+            f"Today Pingo found activity across {len(topics)} topics: "
             f"{topic_names}. "
             f"There are {len(action_items)} action items requiring attention."
         )

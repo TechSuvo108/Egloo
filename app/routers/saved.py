@@ -50,7 +50,7 @@ async def create_saved_item(
     {
       "item_type": "query_result",
       "title": "What is the status of Project Alpha?",
-      "content": "PenGo's answer here...",
+      "content": "Pingo's answer here...",
       "item_metadata": {
         "question": "What is the status of Project Alpha?",
         "model_used": "gemini",
@@ -186,7 +186,7 @@ async def clear_all_saved(
     return MessageResponse(
         message=(
             f"Deleted {count} saved items. "
-            f"PenGo cleared your bookmarks."
+            f"Pingo cleared your bookmarks."
         )
     )
 

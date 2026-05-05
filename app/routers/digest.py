@@ -78,7 +78,7 @@ async def generate_digest_endpoint(
             fcm_token=body.fcm_token,
         )
         return {
-            "message": "PenGo generated your digest successfully!",
+            "message": "Pingo generated your digest successfully!",
             "digest": result,
         }
     except RuntimeError as e:
@@ -111,7 +111,7 @@ async def generate_digest_async(
 
     return {
         "message": (
-            "PenGo is generating your digest in the background. "
+            "Pingo is generating your digest in the background. "
             "Check /digest/today in about 30 seconds."
         ),
         "queued": True,
@@ -161,7 +161,7 @@ async def delete_digest(
     await db.delete(digest)
     await db.commit()
     return MessageResponse(
-        message="Digest deleted. PenGo will generate a fresh one tomorrow."
+        message="Digest deleted. Pingo will generate a fresh one tomorrow."
     )
 
 

@@ -61,7 +61,7 @@ async def ingest_source(
     source_type = source.source_type
 
     await _update_sync_status(db, source, "syncing")
-    print(f"🐧 PenGo starting ingestion for {source_type}...")
+    print(f"🐧 Pingo starting ingestion for {source_type}...")
 
     try:
         # ── Step 1: Decrypt tokens ──────────────────────────────────────────
@@ -185,7 +185,7 @@ async def ingest_source(
             "documents_fetched": len(raw_documents),
             "chunks_created": len(all_chunks),
             "vectors_stored": len(chroma_ids),
-            "message": f"PenGo successfully ingested {source_type}! 🐧",
+            "message": f"Pingo successfully ingested {source_type}! 🐧",
         }
 
     except Exception as e:

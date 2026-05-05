@@ -12,9 +12,9 @@ from app.ai.llm_router import call_llm, call_llm_simple, hash_query
 redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
-# ─── System prompt for PenGo ──────────────────────────────────────────────────
+# ─── System prompt for Pingo ──────────────────────────────────────────────────
 
-PENGO_SYSTEM_PROMPT = """You are PenGo, an intelligent personal assistant
+PINGO_SYSTEM_PROMPT = """You are Pingo, an intelligent personal assistant
 for the Egloo second brain app. You help knowledge workers understand
 and act on information from their emails, Slack messages, and documents.
 
@@ -240,7 +240,7 @@ If the information is insufficient, say so clearly."""
     # Call LLM
     full_answer, model_name = await call_llm_simple(
         prompt=prompt,
-        system=PENGO_SYSTEM_PROMPT,
+        system=PINGO_SYSTEM_PROMPT,
     )
 
     sources = format_sources(chunks)
@@ -304,7 +304,7 @@ Please answer based only on the information provided above."""
     try:
         gen, model_name = await call_llm(
             prompt=prompt,
-            system=PENGO_SYSTEM_PROMPT,
+            system=PINGO_SYSTEM_PROMPT,
             stream=True,
         )
 

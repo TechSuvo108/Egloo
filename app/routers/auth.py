@@ -70,7 +70,7 @@ async def logout(
     ttl = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     await blacklist_access_token(token, ttl)
     await redis_client.delete(f"refresh_token:{str(current_user.id)}")
-    return MessageResponse(message="Successfully logged out. PenGo is taking a nap. 🐧")
+    return MessageResponse(message="Successfully logged out. Pingo is taking a nap. 🐧")
 
 
 @router.get("/me", response_model=UserResponse)

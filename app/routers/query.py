@@ -24,7 +24,7 @@ async def ask(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Ask PenGo a question about your data.
+    Ask Pingo a question about your data.
     Returns complete answer with source citations.
     Checks Redis cache first — cached answers return instantly.
     """
@@ -51,7 +51,7 @@ async def ask(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"PenGo encountered an error: {str(e)}",
+            detail=f"Pingo encountered an error: {str(e)}",
         )
 
     # Save to history (non-blocking — don't fail if save fails)
@@ -76,7 +76,7 @@ async def ask_stream(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Ask PenGo a question — answer streams token by token via SSE.
+    Ask Pingo a question — answer streams token by token via SSE.
 
     Frontend connects with EventSource or fetch + ReadableStream.
     Events:
@@ -113,7 +113,7 @@ async def get_history(
 ):
     """
     Get paginated query history for the current user.
-    Shows past questions and PenGo's answers.
+    Shows past questions and Pingo's answers.
     """
     history = await get_query_history(
         db, current_user.id, limit=limit, offset=offset
@@ -132,7 +132,7 @@ async def clear_history(
     """Clear all query history for the current user."""
     count = await delete_query_history(db, current_user.id)
     return {
-        "message": f"Cleared {count} query records. PenGo forgot everything."
+        "message": f"Cleared {count} query records. Pingo forgot everything."
     }
 
 

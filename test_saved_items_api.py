@@ -33,7 +33,7 @@ async def run_tests():
         res2 = await client.post("/saved", headers=headers, json={
             "item_type": "digest",
             "title": "Digest — 2024-04-29",
-            "content": "Today PenGo found activity across 4 topics...",
+            "content": "Today Pingo found activity across 4 topics...",
             "item_metadata": {
                 "digest_id": str(uuid.uuid4()),
                 "date": "2024-04-29",

@@ -2,7 +2,7 @@ import json
 from typing import List, Dict, Any, Tuple
 from app.ai.llm_router import call_llm_simple
 
-TOPIC_SYSTEM_PROMPT = """You are PenGo, an intelligent assistant that
+TOPIC_SYSTEM_PROMPT = """You are Pingo, an intelligent assistant that
 helps knowledge workers organize their information.
 Your job is to identify meaningful topics from a person's
 emails, messages, and documents.

@@ -34,7 +34,7 @@ async def llm_health(
         },
         "ready": any(configured.values()),
         "message": (
-            "PenGo is ready to answer questions!"
+            "Pingo is ready to answer questions!"
             if any(configured.values())
             else "No LLM providers configured. Add an API key to .env"
         ),
@@ -69,9 +69,9 @@ async def test_llm(
         answer, model = await call_llm_simple(
             prompt=(
                 "Say exactly this and nothing else: "
-                "'PenGo is online and ready to help!'"
+                "'Pingo is online and ready to help!'"
             ),
-            system="You are PenGo. Follow instructions exactly.",
+            system="You are Pingo. Follow instructions exactly.",
         )
         return {
             "status": "success",

@@ -196,7 +196,7 @@ async def refresh_topics(
 
     return {
         "message": (
-            f"PenGo clustered your data into "
+            f"Pingo clustered your data into "
             f"{len(new_topics)} topics!"
         ),
         "topics_created": len(new_topics),

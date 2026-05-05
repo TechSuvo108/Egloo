@@ -104,7 +104,7 @@ async def refresh_topics_async(
 
     return MessageResponse(
         message=(
-            "PenGo is clustering your topics in the background. "
+            "Pingo is clustering your topics in the background. "
             "Check GET /topics in about 30 seconds."
         )
     )

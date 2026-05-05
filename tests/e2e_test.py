@@ -12,7 +12,7 @@ Tests the complete user journey:
 7.  Insert fake source
 8.  List sources (has 1)
 9.  Trigger direct ingest
-10. Ask PenGo a question
+10. Ask Pingo a question
 11. Ask same question again (cached)
 12. Get query history
 13. Generate digest
@@ -253,7 +253,7 @@ asyncio.run(run())
         )
 
     async def test_ask_question(self, client):
-        print("\n10. Ask PenGo a question")
+        print("\n10. Ask Pingo a question")
         r = await client.post(
             f"{BASE_URL}/query/ask",
             headers=self._headers(),
@@ -449,7 +449,7 @@ asyncio.run(run())
         print(f"  Passed:  {self.passed} / {total}")
         print(f"  Failed:  {self.failed} / {total}")
         if self.failed == 0:
-            print("\n  [DONE] All tests passed! PenGo is fully operational!")
+            print("\n  [DONE] All tests passed! Pingo is fully operational!")
         else:
             print(f"\n  [WARN] {self.failed} test(s) failed. Check logs above.")
         print("=" * 55 + "\n")
