@@ -37,3 +37,4 @@ google-generativeai
 groq
 openai
 sse-starlette
+tenacity

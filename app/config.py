@@ -28,6 +28,18 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
     GEMINI_MODEL: str = "gemini-1.5-flash-latest"
 
+    # LLM timeouts (seconds)
+    GEMINI_TIMEOUT: int = 30
+    GROQ_TIMEOUT: int = 20
+    OPENROUTER_TIMEOUT: int = 45
+
+    # Retry settings
+    LLM_MAX_RETRIES: int = 2
+    LLM_RETRY_DELAY: float = 1.0
+
+    # Provider health TTL
+    LLM_HEALTH_TTL: int = 120
+
     # How many chunks to retrieve from ChromaDB per query
     RAG_TOP_K: int = 8
 

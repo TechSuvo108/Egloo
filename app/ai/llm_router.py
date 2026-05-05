@@ -1,231 +1,244 @@
+import asyncio
 import hashlib
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator, Optional, Tuple
 from app.config import settings
+from app.ai.provider_health import (
+    is_healthy, mark_healthy, mark_unhealthy, log_usage
+)
+from app.ai.providers.gemini_provider import (
+    call_gemini, GeminiError, GeminiRateLimitError
+)
+from app.ai.providers.groq_provider import (
+    call_groq, GroqError, GroqRateLimitError
+)
+from app.ai.providers.openrouter_provider import (
+    call_openrouter, OpenRouterError, OpenRouterRateLimitError
+)
 
 
-# ─── Provider: Gemini ────────────────────────────────────────────────────────
+# ─── Provider registry ────────────────────────────────────────────────────────
+# Order defines priority: Gemini first, Groq second, OpenRouter last.
 
-async def _call_gemini(
-    prompt: str,
-    system: str,
-    api_key: str,
-    stream: bool = False,
-) -> AsyncGenerator[str, None]:
-    """
-    Call Google Gemini API.
-    Uses gemini-1.5-flash by default — fast and free tier available.
-    """
-    import google.generativeai as genai
-
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY not set")
-
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        model_name=settings.GEMINI_MODEL,
-        system_instruction=system,
-    )
-
-    if stream:
-        response = await model.generate_content_async(
-            prompt,
-            stream=True,
-        )
-        async for chunk in response:
-            if chunk.text:
-                yield chunk.text
-    else:
-        response = await model.generate_content_async(prompt)
-        yield response.text
+PROVIDERS = [
+    {
+        "name": "gemini",
+        "fn": call_gemini,
+        "rate_limit_error": GeminiRateLimitError,
+        "base_error": GeminiError,
+        "key_setting": "GEMINI_API_KEYS",
+    },
+    {
+        "name": "groq",
+        "fn": call_groq,
+        "rate_limit_error": GroqRateLimitError,
+        "base_error": GroqError,
+        "key_setting": "GROQ_API_KEYS",
+    },
+    {
+        "name": "openrouter",
+        "fn": call_openrouter,
+        "rate_limit_error": OpenRouterRateLimitError,
+        "base_error": OpenRouterError,
+        "key_setting": "OPENROUTER_API_KEYS",
+    },
+]
 
 
-# ─── Provider: Groq ──────────────────────────────────────────────────────────
+# ─── Check if a provider has an API key configured ───────────────────────────
 
-async def _call_groq(
-    prompt: str,
-    system: str,
-    api_key: str,
-    stream: bool = False,
-) -> AsyncGenerator[str, None]:
-    """
-    Call Groq API — extremely fast inference.
-    Uses llama3-8b-8192 by default.
-    """
-    from groq import AsyncGroq
-
-    if not api_key:
-        raise ValueError("GROQ_API_KEY not set")
-
-    client = AsyncGroq(api_key=api_key)
-
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user", "content": prompt},
-    ]
-
-    if stream:
-        response = await client.chat.completions.create(
-            model=settings.GROQ_MODEL,
-            messages=messages,
-            stream=True,
-        )
-        async for chunk in response:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
-    else:
-        response = await client.chat.completions.create(
-            model=settings.GROQ_MODEL,
-            messages=messages,
-            stream=False,
-        )
-        yield response.choices[0].message.content
+def _is_configured(provider: dict) -> bool:
+    key_attr = provider["key_setting"]
+    value = getattr(settings, key_attr, None)
+    return bool(value)
 
 
-# ─── Provider: OpenRouter ────────────────────────────────────────────────────
-
-async def _call_openrouter(
-    prompt: str,
-    system: str,
-    api_key: str,
-    stream: bool = False,
-) -> AsyncGenerator[str, None]:
-    """
-    Call OpenRouter API — aggregates many models.
-    Used as final fallback.
-    OpenRouter uses OpenAI-compatible API format.
-    """
-    from openai import AsyncOpenAI
-
-    if not api_key:
-        raise ValueError("OPENROUTER_API_KEY not set")
-
-    client = AsyncOpenAI(
-        api_key=api_key,
-        base_url=settings.OPENROUTER_BASE_URL,
-    )
-
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user", "content": prompt},
-    ]
-
-    if stream:
-        response = await client.chat.completions.create(
-            model=settings.OPENROUTER_MODEL,
-            messages=messages,
-            stream=True,
-        )
-        async for chunk in response:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
-    else:
-        response = await client.chat.completions.create(
-            model=settings.OPENROUTER_MODEL,
-            messages=messages,
-            stream=False,
-        )
-        yield response.choices[0].message.content
+def _get_keys(provider: dict) -> list[str]:
+    raw = getattr(settings, provider["key_setting"], None)
+    if not raw:
+        return []
+    return [k.strip() for k in raw.split(",") if k.strip()]
 
 
-# ─── LLM Router: tries each provider in order ────────────────────────────────
+# ─── Collect full response from async generator ───────────────────────────────
+
+async def _collect(gen: AsyncGenerator[str, None]) -> str:
+    chunks = []
+    async for chunk in gen:
+        chunks.append(chunk)
+    return "".join(chunks)
+
+
+# ─── Main router: call_llm ────────────────────────────────────────────────────
 
 async def call_llm(
     prompt: str,
     system: str,
     stream: bool = False,
-) -> tuple[AsyncGenerator[str, None], str]:
+) -> Tuple[AsyncGenerator[str, None], str]:
     """
-    Main entry point for all LLM calls in Egloo.
-    Returns (generator, model_name_used).
+    Main LLM entry point for all Egloo modules.
+    Tries providers in priority order with health checks.
 
-    Fallback order:
-      1. Gemini (primary — best quality)
-      2. Groq   (secondary — fastest)
-      3. OpenRouter (fallback — most reliable)
+    Returns: (async_generator, model_name_used)
 
-    Each provider is tried in order.
-    If it fails (no key, rate limit, timeout), moves to next.
-    If all fail, raises RuntimeError.
+    Fallback logic:
+      1. Skip provider if no API key configured
+      2. Skip provider if marked unhealthy in Redis
+      3. Try provider — on rate limit: mark unhealthy, move on
+      4. On success: mark healthy, log usage
+      5. If all fail: raise RuntimeError with clear message
+
+    Caller iterates the generator to get tokens.
+    For non-streaming: use call_llm_simple() instead.
     """
-    providers = [
-        ("gemini", _call_gemini, settings.GEMINI_API_KEYS),
-        ("groq", _call_groq, settings.GROQ_API_KEYS),
-        ("openrouter", _call_openrouter, settings.OPENROUTER_API_KEYS),
-    ]
+    errors = []
 
-    last_error = None
+    for provider in PROVIDERS:
+        name = provider["name"]
+        fn = provider["fn"]
 
-    for model_name, provider_fn, api_keys_str in providers:
-        if not api_keys_str:
+        # Skip if no API key
+        if not _is_configured(provider):
+            print(f"⏭️  Skipping {name} — no API key")
             continue
 
-        # Split by comma and strip whitespace to get the list of keys
-        api_keys = [k.strip() for k in api_keys_str.split(",") if k.strip()]
+        # Skip if marked unhealthy in Redis
+        if not await is_healthy(name):
+            print(f"⏭️  Skipping {name} — marked unhealthy")
+            errors.append(f"{name}: temporarily unhealthy")
+            continue
 
-        for api_key in api_keys:
-            try:
-                gen = provider_fn(prompt, system, api_key, stream)
-                # Peek at first chunk to verify connection works
-                # We wrap in a peekable generator
-                first_chunk = None
-                buffer = []
+        print(f"🤖 Trying provider: {name}")
 
-                async for chunk in gen:
-                    first_chunk = chunk
-                    buffer.append(chunk)
-                    break
-
-                if first_chunk is None:
-                    continue
-
-                # Rebuild full generator: yield buffered + rest
-                async def _full_gen(buf, original_gen):
-                    for c in buf:
-                        yield c
-                    async for c in original_gen:
-                        yield c
-
-                return _full_gen(buffer, gen), model_name
-
-            except Exception as e:
-                last_error = e
-                safe_key = f"...{api_key[-4:]}" if len(api_key) > 4 else "***"
-                print(f"[WARNING] LLM provider {model_name} with key {safe_key} failed: {e}")
+        try:
+            # ── Try the provider ──────────────────────────────────────────
+            keys = _get_keys(provider)
+            if not keys:
                 continue
 
+            last_key_error = None
+            gen = None
+
+            for api_key in keys:
+                try:
+                    gen = fn(
+                        api_key=api_key,
+                        prompt=prompt,
+                        system=system,
+                        stream=stream,
+                    )
+                    break
+                except Exception as e:
+                    last_key_error = e
+                    continue
+
+            if gen is None:
+                raise provider["base_error"](
+                    f"All API keys exhausted for {name}: {last_key_error}"
+                )
+
+            buffer = []
+            first_token = None
+
+            async for token in gen:
+                first_token = token
+                buffer.append(token)
+                break
+
+            if first_token is None:
+                raise provider["base_error"](
+                    f"{name} returned empty response"
+                )
+
+            # ── Success ───────────────────────────────────────────────────
+            await mark_healthy(name)
+            await log_usage(name, success=True, tokens_est=len(prompt) // 4)
+            print(f"✅ Provider {name} responded successfully")
+
+            # Rebuild full generator: buffer + remaining tokens
+            async def _full_generator(
+                buffered: list,
+                remaining: AsyncGenerator,
+                provider_name: str,
+            ) -> AsyncGenerator[str, None]:
+                for t in buffered:
+                    yield t
+                try:
+                    async for t in remaining:
+                        yield t
+                except Exception as e:
+                    print(f"⚠️ Stream error from {provider_name}: {e}")
+
+            return (
+                _full_generator(buffer, gen, name),
+                name,
+            )
+
+        except provider["rate_limit_error"] as e:
+            # Rate limit — back off for health TTL seconds
+            print(f"🚫 {name} rate limited: {e}")
+            await mark_unhealthy(name, f"rate_limited: {str(e)[:80]}")
+            await log_usage(name, success=False)
+            errors.append(f"{name}: rate limited")
+            # Short backoff before trying next provider
+            await asyncio.sleep(0.5)
+            continue
+
+        except provider["base_error"] as e:
+            # Provider error (timeout, config, API error)
+            print(f"❌ {name} error: {e}")
+            await mark_unhealthy(name, f"error: {str(e)[:80]}")
+            await log_usage(name, success=False)
+            errors.append(f"{name}: {str(e)[:60]}")
+            continue
+
+        except Exception as e:
+            # Unexpected error — log but don't mark unhealthy
+            print(f"⚠️ Unexpected error from {name}: {e}")
+            errors.append(f"{name}: unexpected error")
+            continue
+
+    # All providers failed
+    error_summary = " | ".join(errors) if errors else "No providers configured"
     raise RuntimeError(
-        f"All LLM providers and keys failed. Last error: {last_error}. "
-        f"Add valid API keys to .env: "
-        f"GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY"
+        f"All LLM providers failed. Details: {error_summary}. "
+        f"Add at least one API key to .env: "
+        f"GEMINI_API_KEYS, GROQ_API_KEYS, or OPENROUTER_API_KEYS"
     )
 
+
+# ─── Simple non-streaming call ────────────────────────────────────────────────
 
 async def call_llm_simple(
     prompt: str,
     system: str,
-) -> tuple[str, str]:
+) -> Tuple[str, str]:
     """
-    Non-streaming LLM call — collects full response as string.
-    Returns (full_text, model_name).
-    Used for digest generation, topic clustering, etc.
+    Non-streaming LLM call.
+    Collects full response as a single string.
+    Returns: (full_response_text, model_name)
+
+    Use this for:
+    - Digest generation
+    - Topic clustering
+    - Action item extraction
+    - Any task where you need the full response at once
     """
-    gen, model_name = await call_llm(prompt, system, stream=False)
-    chunks = []
-    async for chunk in gen:
-        chunks.append(chunk)
-    return "".join(chunks), model_name
+    gen, model_name = await call_llm(
+        prompt=prompt,
+        system=system,
+        stream=False,
+    )
+    full_text = await _collect(gen)
+    return full_text, model_name
 
 
-# ─── Query hash helper (for Redis cache) ─────────────────────────────────────
+# ─── Query cache key helper ───────────────────────────────────────────────────
 
-import re
-
-def hash_query(question: str) -> str:
+def hash_query(user_id: str, question: str) -> str:
     """
-    Create a cache key from the question.
-    Same question returns same hash.
+    Deterministic cache key from user_id + question.
+    Same user asking same question → same key → cached.
     """
-    normalized = re.sub(r'\s+', ' ', question.strip().lower())
-    return hashlib.sha256(normalized.encode()).hexdigest()
+    raw = f"{user_id}:{question.strip().lower()}"
+    return hashlib.sha256(raw.encode()).hexdigest()
