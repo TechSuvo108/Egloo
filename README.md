@@ -79,7 +79,7 @@ Health:     http://localhost:8000/health
 | SLACK_CLIENT_ID       | Optional | Slack OAuth                     |
 | SLACK_CLIENT_SECRET   | Optional | Slack OAuth                     |
 | FCM_CREDENTIALS_PATH  | Optional | Firebase push notifications     |
-
+```
 ## Architecture
 
 Android (Kotlin + Ktor)
@@ -109,6 +109,7 @@ FastAPI Gateway (CORS + JWT middleware)
         |
         v
 Celery Worker + Beat (background jobs)
+```
 
 ## Common Commands
 
