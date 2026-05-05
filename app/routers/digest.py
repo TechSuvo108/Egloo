@@ -163,3 +163,39 @@ async def delete_digest(
     return MessageResponse(
         message="Digest deleted. PenGo will generate a fresh one tomorrow."
     )
+
+
+@router.post("/{digest_id}/save", response_model=dict)
+async def save_digest_bookmark(
+    digest_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Save a digest as a bookmark.
+    Convenience endpoint for the save button on the digest screen.
+    """
+    from app.services.saved_service import save_item as _save
+
+    digest = await get_digest_by_id(db, digest_id, current_user.id)
+    if not digest:
+        raise HTTPException(status_code=404, detail="Digest not found")
+
+    saved = await _save(
+        db=db,
+        user_id=current_user.id,
+        item_type="digest",
+        title=f"Digest — {digest.date}",
+        content=digest.summary_text,
+        item_metadata={
+            "digest_id": str(digest_id),
+            "date": str(digest.date),
+            "action_items_count": len(digest.action_items or []),
+            "topics_count": len(digest.topics or []),
+        },
+    )
+
+    return {
+        "message": "Digest saved to bookmarks!",
+        "saved_id": str(saved.id),
+    }

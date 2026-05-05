@@ -173,7 +173,7 @@ def format_sources(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 async def get_cached_answer(user_id: str, question: str) -> Optional[Dict]:
     """Check Redis for a cached answer to this question."""
-    cache_key = f"query_cache:{user_id}:{hash_query(question)}"
+    cache_key = f"query_cache:{user_id}:{hash_query(user_id, question)}"
     raw = await redis_client.get(cache_key)
     if raw:
         print("[CACHE HIT] Cache hit — returning cached answer")
@@ -184,7 +184,7 @@ async def get_cached_answer(user_id: str, question: str) -> Optional[Dict]:
 
 async def cache_answer(user_id: str, question: str, answer_data: Dict):
     """Cache an answer in Redis for QUERY_CACHE_TTL seconds."""
-    cache_key = f"query_cache:{user_id}:{hash_query(question)}"
+    cache_key = f"query_cache:{user_id}:{hash_query(user_id, question)}"
     await redis_client.setex(
         cache_key,
         settings.QUERY_CACHE_TTL,

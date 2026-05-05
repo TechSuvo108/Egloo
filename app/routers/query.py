@@ -153,6 +153,66 @@ async def get_suggestions(
         "Are there any deadlines I should know about?",
         "What was discussed in Slack about the product launch?",
         "Who has been trying to reach me?",
-        "What documents were recently updated?",
     ]
     return {"suggestions": suggestions}
+
+
+@router.post("/save", response_model=dict)
+async def save_query_result(
+    body: AskRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Ask a question AND immediately save the result as a bookmark.
+    Convenience endpoint for the frontend save button on query results.
+    """
+    from app.services.saved_service import save_item as _save
+
+    if not body.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+
+    try:
+        result = await answer_question(
+            user_id=str(current_user.id),
+            question=body.question,
+            use_cache=body.use_cache,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    # Save to query history
+    try:
+        await save_query(
+            db=db,
+            user_id=current_user.id,
+            question=body.question,
+            answer=result["answer"],
+            sources_used=result["sources"],
+            model_used=result["model_used"],
+        )
+    except Exception:
+        pass
+
+    # Save as bookmark
+    saved = await _save(
+        db=db,
+        user_id=current_user.id,
+        item_type="query_result",
+        title=body.question[:200],
+        content=result["answer"],
+        item_metadata={
+            "question": body.question,
+            "model_used": result["model_used"],
+            "sources_count": len(result["sources"]),
+            "chunks_retrieved": result["chunks_retrieved"],
+        },
+    )
+
+    return {
+        "message": "Answer saved to bookmarks!",
+        "saved_id": str(saved.id),
+        "answer": result["answer"],
+        "sources": result["sources"],
+        "model_used": result["model_used"],
+    }
